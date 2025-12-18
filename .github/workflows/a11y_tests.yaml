@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  COMPOSER_HOME: /tmp/composer-cache
+  COMPOSER_CACHE_DIR: /tmp/composer-cache
 
 jobs:
   a11y_tests:
@@ -38,7 +38,7 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.COMPOSER_HOME }}
+          path: ${{ env.COMPOSER_CACHE_DIR }}
           key: ${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
       - name: Cache NPM dependencies
         uses: actions/cache@v4
