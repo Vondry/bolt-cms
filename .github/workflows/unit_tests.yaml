@@ -3,6 +3,9 @@ name: Unit Tests Checks
 on:
   pull_request:
 
+env:
+  COMPOSER_HOME: /tmp/composer-cache
+
 jobs:
   unittests:
     strategy:
@@ -24,10 +27,8 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: /tmp/composer-cache
+          path: ${{ env.COMPOSER_HOME }}
           key: ${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php-version }}
+      - run: composer install --no-progress --no-interaction
       - name: run PHP Unit
         run: ./vendor/bin/phpunit

@@ -3,6 +3,9 @@ name: Accessibility (a11y) Tests
 on:
   pull_request:
 
+env:
+  COMPOSER_HOME: /tmp/composer-cache
+
 jobs:
   a11y_tests:
     strategy:
@@ -35,16 +38,14 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: /tmp/composer-cache
+          path: ${{ env.COMPOSER_HOME }}
           key: ${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
       - name: Cache NPM dependencies
         uses: actions/cache@v4
         with:
           path: /tmp/npm-cache
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php-version }}
+      - run: composer install --no-progress --no-interaction
       - name: Show Bolt info
         run: ./bin/console bolt:info --ansi
       - name: Install NPM dependencies
