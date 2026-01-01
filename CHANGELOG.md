@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## 5.2.4
+
+Released: 2025-12-30
+
+This release includes a security-related fix. Our thanks for identifying this issue and disclosing it to us responsibly! 👏🙏
+
 ## 5.2.3
 
 Released: 2025-08-18
