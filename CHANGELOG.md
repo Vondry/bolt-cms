@@ -7,6 +7,10 @@ Released: 2025-12-30
 
 This release includes a security-related fix. Our thanks for identifying this issue and disclosing it to us responsibly! 👏🙏
 
+### 🔐 Security related changes
+
+- Fix possible path traversal through thumbnail endpoint (bobvandevijver, [#3661](https://github.com/bolt/core/pull/3661))
+
 ## 5.2.3
 
 Released: 2025-08-18
