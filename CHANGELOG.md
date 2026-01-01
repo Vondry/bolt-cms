@@ -43,6 +43,28 @@ Make sure to check the [upgrade notes](https://github.com/bolt/core/blob/main/UP
 - We've changed our indent for yaml files to 2, as that works best with most available formatters.
 - `master` branch has been removed, we're now using version based branches only.
 
+## 5.2.4
+
+Released: 2025-12-30
+
+This release includes a security-related fix. Our thanks for identifying this issue and disclosing it to us responsibly! 👏🙏
+
+### 🔐 Security related changes
+
+- Fix possible path traversal through thumbnail endpoint (bobvandevijver, [#3661](https://github.com/bolt/core/pull/3661))
+
+## 5.2.3
+
+Released: 2025-08-18
+
+This release includes a security-related fix for new installations. Our thanks to an anonymous report for identifying this issue and disclosing it to us responsibly! 👏🙏
+
+For existing users, please make sure to check your allowed file types. Every file is uploaded as is to a publicly accessible folder, which can be abused if HTML is allowed and the preview function in the Bolt admin panel is used. We recommend limiting the allowed file types as much as possible!
+
+### 🔐 Security related changes
+
+- Flip default for allowed file types (bobvandevijver, [#3593](https://github.com/bolt/core/pull/3593))
+
 ## 5.2.2
 
 Released: 2025-03-10
