@@ -12,6 +12,7 @@ use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -20,6 +21,16 @@ use Throwable;
 class ImageController
 {
     private Server $server;
+
+    /**
+     * @var array{
+     *     w?: int,
+     *     h?: int,
+     *     fit?: string,
+     *     location?: string,
+     *     q?: int
+     * }
+     */
     private array $parameters = [];
 
     public function __construct(
@@ -35,14 +46,14 @@ class ImageController
         }
 
         try {
-            $filename = PathCanonicalize::canonicalize($this->getPath($request), $filename);
+            $filename = PathCanonicalize::canonicalize($this->getPath($request), $filename, true);
         } catch (Exception) {
             return $this->sendErrorImage();
         }
 
         $this->parseParameters($paramString);
         $this->createServer($request);
-        $this->saveAsFile($request, $paramString, $filename);
+        $this->saveThumb($request, $filename);
 
         return $this->buildResponse($request, $filename);
     }
@@ -71,22 +82,27 @@ class ImageController
         return $this->config->getPath($path, $absolute, $additional);
     }
 
-    private function saveAsFile(Request $request, string $paramString, string $filename): void
+    private function saveThumb(Request $request, string $filename): void
     {
         if (! $this->config->get('general/thumbnails/save_files', true)) {
             return;
         }
 
         $filesystem = new Filesystem();
-        $filePath = sprintf('%s%s%s%s%s', $this->getPath($request, 'thumbs'), DIRECTORY_SEPARATOR, $paramString, DIRECTORY_SEPARATOR, $filename);
         $folderMode = $this->config->get('general/filepermissions/folders', 0775);
         $fileMode = $this->config->get('general/filepermissions/files', 0664);
 
+        $thumbPath = Path::join(
+            $this->getPath($request, 'thumbs'),
+            $this->parameterPath(),
+            $filename
+        );
+
         try {
             $imageBlob = $this->buildImage($request, $filename);
-            $filesystem->mkdir(dirname($filePath), $folderMode);
-            $filesystem->dumpFile($filePath, $imageBlob);
-            $filesystem->chmod($filePath, $fileMode);
+            $filesystem->mkdir(dirname($thumbPath), $folderMode);
+            $filesystem->dumpFile($thumbPath, $imageBlob);
+            $filesystem->chmod($thumbPath, $fileMode);
         } catch (Throwable) {
             // Fail silently, output user-friendly exception elsewhere.
         }
@@ -197,6 +213,18 @@ class ImageController
             'c', 'crop' => 'crop',
             default => $fit,
         };
+    }
+
+    private function parameterPath(): string
+    {
+        return sprintf(
+            '%d_%d_%d_%s_%s',
+            $this->parameters['w'] ?? 0,
+            $this->parameters['h'] ?? 0,
+            $this->parameters['q'] ?? 0,
+            $this->parameters['fit'] ?? '',
+            $this->parameters['location'] ?? ''
+        );
     }
 
     public function sendErrorImage(): Response
