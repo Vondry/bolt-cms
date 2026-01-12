@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## 5.2.5
+
+Released: 2026-01-12
+
+This release contains a fix for the thumbnail endpoint, which was partially broken due to the previous security fix.
+
 ## 5.2.4
 
 Released: 2025-12-30
