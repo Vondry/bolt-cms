@@ -1,8 +1,16 @@
 Changelog
 =========
 
-<<<<<<< HEAD
-## 6.0.0 (unreleased)
+
+## 6.0.1
+
+Released: 2026-01-12
+
+This release contains a fix for the thumbnail endpoint.
+
+## 6.0.0
+
+Released: 2026-01-01
 
 Make sure to check the [upgrade notes](https://github.com/bolt/core/blob/main/UPGRADING.md) for instructions when upgrading your installation!
 
