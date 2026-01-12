@@ -1,6 +1,7 @@
 Changelog
 =========
 
+<<<<<<< HEAD
 ## 6.0.0 (unreleased)
 
 Make sure to check the [upgrade notes](https://github.com/bolt/core/blob/main/UPGRADING.md) for instructions when upgrading your installation!
@@ -42,6 +43,12 @@ Make sure to check the [upgrade notes](https://github.com/bolt/core/blob/main/UP
 - In line with Symfony, the `getUserName()` method on `User` has been deprecated. Use `getUserIdentifier()` instead.
 - We've changed our indent for yaml files to 2, as that works best with most available formatters.
 - `master` branch has been removed, we're now using version based branches only.
+
+## 5.2.5
+
+Released: 2026-01-12
+
+This release contains a fix for the thumbnail endpoint, which was partially broken due to the previous security fix.
 
 ## 5.2.4
 
