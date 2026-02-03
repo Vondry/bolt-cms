@@ -1496,12 +1496,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Controller/ImageController.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property Bolt\\\\Controller\\\\ImageController\\:\\:\\$parameters type has no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Controller/ImageController.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot call method setMaxPerPage\\(\\) on Bolt\\\\Entity\\\\Content\\|Pagerfanta\\\\Pagerfanta\\|null\\.$#',
 	'identifier' => 'method.nonObject',
 	'count' => 1,
