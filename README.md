@@ -32,11 +32,14 @@ or through extensions installed from the Composer ecosystem.
 * **Dummy content** to test your site in development or show it to a client
 * **Best rich content editors** Fully licensed Redactor and Article fields to fit any content, for free.
 
+## Supported versions
+
+Only the latest minor release of Bolt is officially supported, which currently is Bolt 6.x!
+
 ## Repository state
 
-Sadly, the main maintainer Bob den Otter has passed early 2024 (rest in peace).
-Since then, little updates have been done, but luckily new maintainers have been found.
-We are in the process of taking over the organisation and are happy to review incoming PRs once again!
+Sadly, the previous main maintainer Bob den Otter has passed early 2024 (rest in peace).
+Since then new maintainers have been found which means that this project will continue to be developed and maintained!
 
 ## How To Use
 
