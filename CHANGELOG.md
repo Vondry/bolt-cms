@@ -1,6 +1,17 @@
 Changelog
 =========
 
+## 6.0.3
+
+Released: 2026-04-09
+
+Maintenance release bumping the minimum version of axios.
+
+## 6.0.2
+
+Released: 2026-04-09
+
+Maintenance release with mostly JS dependency updates and a single fix when saving new content.
 
 ## 6.0.1
 
