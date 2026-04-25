@@ -88,7 +88,8 @@
 <script>
 import Vue from 'vue';
 import $ from 'jquery';
-var uniqid = require('locutus/php/misc/uniqid');
+import { uniqid } from 'locutus/php/misc/uniqid';
+
 export default {
     name: 'EditorCollection',
     props: {
