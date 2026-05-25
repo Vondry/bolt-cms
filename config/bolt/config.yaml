@@ -152,6 +152,12 @@ query_search:
 # example in `type: select`.
 maximum_listing_select: 50000
 
+# Default number of records returned by a content query (e.g. `{% setcontent %}`
+# or the query DSL) when no explicit `limit` is given. This guards against
+# unintentionally fetching an entire ContentType. Override per query with
+# `limit`, e.g. `{% setcontent pages limit 30 %}`.
+query_default_limit: 20
+
 # Template for showing the search results. If not defined, uses the settings for
 # listing_template and listing_records.
 #

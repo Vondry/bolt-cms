@@ -181,8 +181,9 @@ class ContentQueryParser
      */
     protected function parseDirectives(): void
     {
-        // If the user doesn't pass in a limit, we'll get 20. Don't break the site by fetching _all_.
-        $this->directives = ['limit' => 20];
+        // If the user doesn't pass in a limit, we fall back to the configured
+        // default (20). Don't break the site by fetching _all_.
+        $this->directives = ['limit' => $this->config->get('general/query_default_limit', 20)];
 
         if (! $this->params) {
             return;
