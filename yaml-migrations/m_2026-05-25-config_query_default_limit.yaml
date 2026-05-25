@@ -1,0 +1,6 @@
+# Add the configurable default limit for content queries (`{% setcontent %}` and the query DSL).
+file: bolt/config.yaml
+since: 6.2.0
+
+add:
+  query_default_limit: 20
