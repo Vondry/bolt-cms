@@ -44,9 +44,12 @@ class ListingController extends TwigAwareController implements FrontendZoneInter
             throw new NotFoundHttpException('Content is not viewable');
         }
 
-        // If the locale is the wrong locale
-        if (! $this->validLocaleForContentType($request, $contentType)) {
-            return $this->redirectToDefaultLocale($request);
+        // If the locale is the wrong locale, redirect to the default locale, or -
+        // when that's not possible (e.g. a forwarded request without a matched
+        // route) - render the listing in the default locale.
+        if (! $this->validLocaleForContentType($request, $contentType)
+            && ($redirect = $this->redirectToDefaultLocaleOrFallback($request)) instanceof Response) {
+            return $redirect;
         }
 
         $page = (int) $this->getFromRequest($request, 'page', '1');

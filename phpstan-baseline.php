@@ -1424,12 +1424,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Controller/Frontend/ListingController.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method Bolt\\\\Controller\\\\Frontend\\\\ListingController\\:\\:listing\\(\\) should return Symfony\\\\Component\\\\HttpFoundation\\\\Response but returns Symfony\\\\Component\\\\HttpFoundation\\\\Response\\|null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Controller/Frontend/ListingController.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method Bolt\\\\Controller\\\\Frontend\\\\ListingController\\:\\:parseQueryParams\\(\\) return type has no value type specified in iterable type array\\.$#',
 	'identifier' => 'missingType.iterableValue',
 	'count' => 1,
@@ -1510,12 +1504,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Method Bolt\\\\Controller\\\\TwigAwareController\\:\\:renderSingle\\(\\) has parameter \\$templates with no value type specified in iterable type array\\.$#',
 	'identifier' => 'missingType.iterableValue',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Controller/TwigAwareController.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method Bolt\\\\Controller\\\\TwigAwareController\\:\\:renderSingle\\(\\) should return Symfony\\\\Component\\\\HttpFoundation\\\\Response but returns Symfony\\\\Component\\\\HttpFoundation\\\\Response\\|null\\.$#',
-	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Controller/TwigAwareController.php',
 ];

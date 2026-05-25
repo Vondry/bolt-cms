@@ -113,9 +113,11 @@ class TwigAwareController extends AbstractController
             throw new NotFoundHttpException('Content is not viewable');
         }
 
-        // If the locale is the wrong locale
-        if (! $this->validLocaleForContentType($request, $recordDefinition)) {
-            return $this->redirectToDefaultLocale($request);
+        // If the locale is the wrong locale, redirect to the default locale, or -
+        // when that's not possible - render the record in the default locale.
+        if (! $this->validLocaleForContentType($request, $recordDefinition)
+            && ($redirect = $this->redirectToDefaultLocaleOrFallback($request)) instanceof Response) {
+            return $redirect;
         }
 
         $singularSlug = $record->getContentTypeSingularSlug();
@@ -145,8 +147,41 @@ class TwigAwareController extends AbstractController
         return $request->getLocale() === $this->defaultLocale;
     }
 
+    /**
+     * Either redirect to the same route in the default locale, or - when there's
+     * no route to redirect to (e.g. a forwarded request, or an error page where
+     * routing never matched) - reset the request to the default locale and return
+     * `null`, so the caller can render in the default locale instead.
+     *
+     * Note: this resets the locale on the _given_ request only. When rendering an
+     * error page, Twig's `app.request` is a sub-request whose locale was set
+     * separately (see ErrorController::setLocaleFromPath()), so the `<html lang>`
+     * may still reflect the URL locale while the - non-localizable - record content
+     * is rendered in the default locale. That's harmless: such content is identical
+     * across locales.
+     */
+    protected function redirectToDefaultLocaleOrFallback(Request $request): ?Response
+    {
+        $redirect = $this->redirectToDefaultLocale($request);
+
+        if ($redirect instanceof Response) {
+            return $redirect;
+        }
+
+        $request->setLocale($this->defaultLocale);
+
+        return null;
+    }
+
     protected function redirectToDefaultLocale(Request $request): ?Response
     {
+        // No route was matched (e.g. on an error page): there's nothing to
+        // redirect to, so let the caller decide how to handle this.
+        $route = $request->attributes->get('_route');
+        if (! $route) {
+            return null;
+        }
+
         $request->getSession()->set('_locale', $this->defaultLocale);
 
         $params = $request->attributes->get('_route_params');
@@ -155,7 +190,7 @@ class TwigAwareController extends AbstractController
             $params['_locale'] = $this->defaultLocale;
         }
 
-        return $this->redirectToRoute($request->get('_route'), $params);
+        return $this->redirectToRoute($route, $params);
     }
 
     private function setTwigLoader(): void

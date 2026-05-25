@@ -21,6 +21,8 @@ use Symfony\Component\HttpKernel\Controller\ErrorController as SymfonyErrorContr
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -37,9 +39,16 @@ class ErrorController extends SymfonyErrorController implements ErrorZoneInterfa
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly Security $security,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
+        string $locales,
     ) {
         parent::__construct($httpKernel, $this->templateController, $errorRenderer);
+
+        $this->localeCodes = explode('|', $locales);
     }
+
+    /** @var list<string> */
+    private readonly array $localeCodes;
 
     /**
      * Show an exception. Mainly used for custom 404 pages, otherwise falls back
@@ -61,6 +70,11 @@ class ErrorController extends SymfonyErrorController implements ErrorZoneInterfa
 
         // We need the parent request here, but fall back to current if not found
         if ($request = $this->requestStack->getParentRequest() ?? $this->requestStack->getCurrentRequest()) {
+            // On a 404/403, no route matched, so Symfony's LocaleListener never set
+            // the locale from the URL. Recover it from the path so localized error
+            // pages (and their records) render in the right language.
+            $this->setLocaleFromPath($request);
+
             if ($code === Response::HTTP_SERVICE_UNAVAILABLE || $this->isMaintenanceEnabled($code)) {
                 $twig->addGlobal('exception', $exception);
 
@@ -156,6 +170,41 @@ class ErrorController extends SymfonyErrorController implements ErrorZoneInterfa
         return filter_var($this->config->get('general/maintenance_mode', false), FILTER_VALIDATE_BOOLEAN);
     }
 
+    /**
+     * Sets the locale based on the first segment of the path, if it matches one
+     * of the configured locales (e.g. `/de/...` => `de`).
+     *
+     * The locale is applied to both the given request (used when rendering a
+     * record) and the current request (which Twig's `app.request` resolves to,
+     * and is a sub-request when an error page is being rendered). It's also set on
+     * the translator, so `{% trans %}` strings in the error template are localized
+     * too - normally Symfony's `LocaleListener`/`LocaleAwareListener` does this,
+     * but neither runs when no route matched.
+     */
+    private function setLocaleFromPath(Request $request): void
+    {
+        // Cast: on PHP 8.4 `mb_trim()` is analysed as `string|false`, but `getPathInfo()`
+        // always yields a string, so the result is effectively always a string here.
+        $segment = explode('/', (string) mb_trim($request->getPathInfo(), '/'))[0];
+
+        if ($segment === '' || ! in_array($segment, $this->localeCodes, true)) {
+            return;
+        }
+
+        $request->setLocale($segment);
+
+        $currentRequest = $this->requestStack->getCurrentRequest();
+        if ($currentRequest instanceof Request && $currentRequest !== $request) {
+            $currentRequest->setLocale($segment);
+        }
+
+        // The concrete translator is locale-aware; the contracts interface we depend
+        // on isn't, so guard the call to keep the dependency narrow.
+        if ($this->translator instanceof LocaleAwareInterface) {
+            $this->translator->setLocale($segment);
+        }
+    }
+
     private function attemptToRender(Request $request, string $item): ?Response
     {
         // First, see if it's a contenttype/slug pair:
@@ -165,7 +214,9 @@ class ErrorController extends SymfonyErrorController implements ErrorZoneInterfa
             // We wrap it in a try/catch, because we wouldn't want to
             // trigger a 404 within a 404 now, would we?
             try {
-                return $this->detailController->record($request, $slug, $contentType, false, null);
+                // Pass the request's locale explicitly, so `DetailController` keeps
+                // it instead of falling back to the default locale.
+                return $this->detailController->record($request, $slug, $contentType, false, $request->getLocale());
             } catch (NotFoundHttpException) {
                 // Just continue to the next one.
             }
