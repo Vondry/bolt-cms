@@ -234,8 +234,6 @@ class UploadController extends AbstractController implements AsyncZoneInterface
         }
 
         // Write the sanitized SVG back to the temporary file
-        file_put_contents($file['tmp_name'], $sanitizedSvg);
-
-        return true;
+        return file_put_contents($file['tmp_name'], $sanitizedSvg) !== false;
     }
 }
