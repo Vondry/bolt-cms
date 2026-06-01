@@ -1,0 +1,4 @@
+{# Test fixture for ErrorControllerTest: renders a `__()` string so the test can
+   assert error pages translate via the translator locale recovered from the URL.
+   `http_error.name` is "Error %status_code%" (en) / "Fout %status_code%" (nl). #}
+LOCALE_PROBE:{{ __('http_error.name', {'%status_code%': 404}) }}

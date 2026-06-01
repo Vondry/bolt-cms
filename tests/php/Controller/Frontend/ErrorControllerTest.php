@@ -18,6 +18,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use Twig\Environment;
+use Twig\Loader\ChainLoader;
+use Twig\Loader\FilesystemLoader;
 
 class ErrorControllerTest extends DbAwareTestCase
 {
@@ -119,6 +121,34 @@ class ErrorControllerTest extends DbAwareTestCase
         self::assertSame('nl', $translator->getLocale());
     }
 
+    public function testErrorPageTranslatesUnderscoreFunctionInRequestedLocale(): void
+    {
+        // End-to-end: a `{{ __('...') }}` string in the rendered error page must be
+        // translated in the locale recovered from the URL. `http_error.name` is
+        // "Error %status_code%" (en) / "Fout %status_code%" (nl).
+        $this->registerFixtureTemplatePath();
+        $this->setGeneralConfig('notfound', ['locale_probe.html.twig']);
+
+        $body = (string) $this->renderError(new NotFoundHttpException(), '/nl/this-page-does-not-exist')->getContent();
+
+        self::assertStringContainsString('LOCALE_PROBE:Fout 404', $body);
+        self::assertStringNotContainsString('Error 404', $body);
+    }
+
+    public function testErrorPageTranslatesUnderscoreFunctionInDefaultLocale(): void
+    {
+        // The counterpart of the test above: with no locale segment in the URL, the
+        // same `__()` string must fall back to the default locale (en) - and must not
+        // leak a previous request's locale onto the shared translator.
+        $this->registerFixtureTemplatePath();
+        $this->setGeneralConfig('notfound', ['locale_probe.html.twig']);
+
+        $body = (string) $this->renderError(new NotFoundHttpException(), '/this-page-does-not-exist')->getContent();
+
+        self::assertStringContainsString('LOCALE_PROBE:Error 404', $body);
+        self::assertStringNotContainsString('Fout 404', $body);
+    }
+
     public function testNotFoundPageWithNonLocalizedContentTypeDoesNotError(): void
     {
         // The default `notfound` points at `blocks/404-not-found`. The `blocks`
@@ -183,6 +213,31 @@ class ErrorControllerTest extends DbAwareTestCase
         } finally {
             $requestStack->pop();
         }
+    }
+
+    /**
+     * Make the `Fixtures/` directory resolvable by name, so a fixture template can be
+     * pointed at via the `notfound` config. Mirrors how Bolt prepends paths to the
+     * existing filesystem loader (see TwigAwareController::setTwigLoader()) rather than
+     * replacing it, so the added path survives rendering.
+     */
+    private function registerFixtureTemplatePath(): void
+    {
+        /** @var Environment $twig */
+        $twig = self::getContainer()->get('twig');
+
+        $loader = $twig->getLoader();
+        $loaders = $loader instanceof ChainLoader ? $loader->getLoaders() : [$loader];
+
+        foreach ($loaders as $candidate) {
+            if ($candidate instanceof FilesystemLoader) {
+                $candidate->addPath(__DIR__ . '/Fixtures');
+
+                return;
+            }
+        }
+
+        self::fail('Could not find a FilesystemLoader to register the fixture template path on.');
     }
 
     private function getPublishedPage(): Content
