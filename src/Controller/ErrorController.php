@@ -187,21 +187,21 @@ class ErrorController extends SymfonyErrorController implements ErrorZoneInterfa
         // always yields a string, so the result is effectively always a string here.
         $segment = explode('/', (string) mb_trim($request->getPathInfo(), '/'))[0];
 
-        if ($segment === '' || ! in_array($segment, $this->localeCodes, true)) {
-            return;
-        }
+        if ($segment !== '' && in_array($segment, $this->localeCodes, true)) {
+            $request->setLocale($segment);
 
-        $request->setLocale($segment);
-
-        $currentRequest = $this->requestStack->getCurrentRequest();
-        if ($currentRequest instanceof Request && $currentRequest !== $request) {
-            $currentRequest->setLocale($segment);
+            $currentRequest = $this->requestStack->getCurrentRequest();
+            if ($currentRequest instanceof Request && $currentRequest !== $request) {
+                $currentRequest->setLocale($segment);
+            }
         }
 
         // The concrete translator is locale-aware; the contracts interface we depend
-        // on isn't, so guard the call to keep the dependency narrow.
+        // on isn't, so guard the call to keep the dependency narrow. Always sync it to
+        // the (possibly default) request locale so a previous request's locale can't
+        // leak into a default-locale error page in long-running runtimes.
         if ($this->translator instanceof LocaleAwareInterface) {
-            $this->translator->setLocale($segment);
+            $this->translator->setLocale($request->getLocale());
         }
     }
 

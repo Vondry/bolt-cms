@@ -173,12 +173,16 @@ class ErrorControllerTest extends DbAwareTestCase
         $requestStack = self::getContainer()->get(RequestStack::class);
         $requestStack->push($request);
 
-        /** @var ErrorController $errorController */
-        $errorController = self::getContainer()->get(ErrorController::class);
-        /** @var Environment $twig */
-        $twig = self::getContainer()->get('twig');
+        try {
+            /** @var ErrorController $errorController */
+            $errorController = self::getContainer()->get(ErrorController::class);
+            /** @var Environment $twig */
+            $twig = self::getContainer()->get('twig');
 
-        return $errorController->showAction($twig, $exception);
+            return $errorController->showAction($twig, $exception);
+        } finally {
+            $requestStack->pop();
+        }
     }
 
     private function getPublishedPage(): Content
