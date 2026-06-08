@@ -362,18 +362,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Cache/SelectOptionsCacher.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Cannot access offset \'host\' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#',
-	'identifier' => 'offsetAccess.nonOffsetAccessible',
-	'count' => 2,
-	'path' => __DIR__ . '/src/Canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot access offset \'scheme\' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#',
-	'identifier' => 'offsetAccess.nonOffsetAccessible',
-	'count' => 3,
-	'path' => __DIR__ . '/src/Canonical.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method Bolt\\\\Canonical\\:\\:generateLink\\(\\) has parameter \\$canonical with no type specified\\.$#',
 	'identifier' => 'missingType.parameter',
 	'count' => 1,
@@ -1354,12 +1342,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Call to an undefined method object\\:\\:setPassword\\(\\)\\.$#',
 	'identifier' => 'method.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Controller/Backend/ResetPasswordController.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Method Bolt\\\\Controller\\\\Backend\\\\ResetPasswordController\\:\\:buildResetEmail\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#',
-	'identifier' => 'missingType.iterableValue',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Controller/Backend/ResetPasswordController.php',
 ];
