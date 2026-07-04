@@ -1,3 +1,13 @@
+# From Bolt 6.1 to 6.2
+
+### !You can not migrate from Bolt 5.x to 6.2 directly!
+
+You will need to migrate to Bolt 6.1 first, migrate all your databases and afterwards migrate to 6.2.
+
+## Removed classes
+
+- `\Bolt\Doctrine\Migrations\ArrayToJsonMigrator`. This class was always meant to be temporary. If you use it in your migration, you should remove the usages in your migration (but make sure that it has already been executed on all your deployments).
+
 # From Bolt 6.0 to 6.1
 
 This release upgrades the erusev parsedown packages (used for Markdown) requirements to resolve issues with newer PHP version compatibility. However, this can have an impact on your existing pages as the Markdown parsing rules have changed.
@@ -32,6 +42,8 @@ doctrine_migrations:
     DoctrineMigrations: '%kernel.project_dir%/migrations'
   enable_profiler: '%kernel.debug%'
 ```
+
+> Note: The `\Bolt\Doctrine\Migrations\ArrayToJsonMigrator` class has been removed in Bolt 6.2. If you followed the migration guide timely, you should not have anything to worry about. Otherwise, make sure to migrate to Bolt 6.1 first, migrate all your databases and afterwards migrate to 6.2.
 
 1. Remove any migration you made yourself
 2. Validate that your database is in sync with the code by running `bin/console doctrine:migrations:diff`. If any migrations are generated, inspect them for correctness (changes to the used Doctrine version will have caused changes) and keep the files. The following migrations are to be expected from Bolt itself (when using MySQL):
