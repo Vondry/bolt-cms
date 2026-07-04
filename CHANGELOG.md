@@ -5,14 +5,14 @@ Changelog
 
 Released: 2026-07-04
 
-This release includes several security-related fixes. Our thanks to @Vondry and mgaye for identifying these issues and disclosing them to us responsibly! 👏🙏
+This release includes several security-related fixes. Our thanks to @Vondry and @0xmgaye for identifying these issues and disclosing them to us responsibly! 👏🙏
 
 ### 🔐 Security related changes
 
 - Fix SQL injection in ListFormatHelper (@Vondry)
 - Prevent SSRF in upload-from-URL and embed endpoint (@Vondry)
 - Filter unpublished/viewless content from the public Relation API (@Vondry)
-- Block open redirect on login endpoint (mgaye, fix by @bobvandevijver)
+- Block open redirect on login endpoint (@0xmgaye, fix by @bobvandevijver)
 
 ## 6.1.3
 
