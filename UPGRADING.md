@@ -4,6 +4,10 @@
 
 You will need to migrate to Bolt 6.1 first, migrate all your databases and afterwards migrate to 6.2.
 
+## New functionality
+
+- You can now configure the default query limit. Thanks @Vondry! (https://github.com/bolt/core/pull/3727)
+
 ## Removed classes
 
 - `\Bolt\Doctrine\Migrations\ArrayToJsonMigrator`. This class was always meant to be temporary. If you use it in your migration, you should remove the usages in your migration (but make sure that it has already been executed on all your deployments).

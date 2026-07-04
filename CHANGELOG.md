@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## 6.2.0
+
+Released: Not yet released
+
+- The default query limit can now be configured. Thanks @Vondry! (https://github.com/bolt/core/pull/3727)
+
 ## 6.1.3
 
 Released: 2026-05-16
