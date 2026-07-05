@@ -13,11 +13,13 @@ use Bolt\Utils\UrlSafetyChecker;
 use Cocur\Slugify\Slugify;
 use Doctrine\ORM\EntityManagerInterface;
 use enshrined\svgSanitize\Sanitizer;
+use RuntimeException;
 use Sirius\Upload\Handler;
 use Sirius\Upload\Result\File;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
+use Symfony\Component\HttpClient\NoPrivateNetworkHttpClient;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
 #[IsGranted(attribute: 'upload')]
@@ -42,7 +45,8 @@ class UploadController extends AbstractController implements AsyncZoneInterface
         private Config $config,
         private TextExtension $textExtension,
         private Filesystem $filesystem,
-        private TagAwareCacheInterface $cache
+        private TagAwareCacheInterface $cache,
+        private HttpClientInterface $httpClient
     ) {
     }
 
@@ -89,9 +93,15 @@ class UploadController extends AbstractController implements AsyncZoneInterface
         try {
             // Make sure temporary folder exists
             $this->filesystem->mkdir($tmpFolder);
-            // Create temporary file
-            $this->filesystem->copy($url, $tmpFile);
+            // Fetch the file. `UrlSafetyChecker` above only validates the
+            // submitted URL; the download itself follows redirects, so it is
+            // performed through a client that re-validates the address actually
+            // connected to on every hop. This prevents SSRF bypasses via HTTP
+            // redirects or DNS rebinding to a private/reserved/loopback address.
+            $this->downloadUrlToFile($url, $tmpFile);
         } catch (Throwable $e) {
+            $this->filesystem->remove($tmpFile);
+
             return new JsonResponse([
                 'error' => [
                     'message' => $e->getMessage(),
@@ -110,6 +120,32 @@ class UploadController extends AbstractController implements AsyncZoneInterface
         $this->filesystem->remove($tmpFile);
 
         return $response;
+    }
+
+    /**
+     * Download a remote URL to a local file through an SSRF-guarded HTTP client.
+     *
+     * The client blocks any hop (including redirects) that connects to a
+     * private, reserved, loopback or link-local address, so a public URL that
+     * redirects (or rebinds) to an internal host cannot be fetched.
+     */
+    private function downloadUrlToFile(string $url, string $tmpFile): void
+    {
+        $client = new NoPrivateNetworkHttpClient($this->httpClient);
+        $response = $client->request('GET', $url);
+
+        $handle = fopen($tmpFile, 'wb');
+        if ($handle === false) {
+            throw new RuntimeException('Unable to open temporary file for writing.');
+        }
+
+        try {
+            foreach ($client->stream($response) as $chunk) {
+                fwrite($handle, $chunk->getContent());
+            }
+        } finally {
+            fclose($handle);
+        }
     }
 
     #[Route(path: '/upload', name: 'bolt_async_upload', methods: [Request::METHOD_POST])]
