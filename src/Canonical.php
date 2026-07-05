@@ -58,13 +58,8 @@ class Canonical
 
         $requestUrl = parse_url($this->request->getSchemeAndHttpHost());
 
-        // Handle test environment or malformed URLs
+        // Nothing to do if the request URL is malformed.
         if ($requestUrl === false || ! isset($requestUrl['scheme'])) {
-            $this->setScheme('http');
-            $this->setHost('localhost');
-            $this->setPort(null);
-            $_SERVER['CANONICAL_HOST'] = 'localhost';
-            $_SERVER['CANONICAL_SCHEME'] = 'http';
             return;
         }
 
@@ -76,13 +71,8 @@ class Canonical
 
         $configUrl = parse_url($configCanonical);
 
-        // Handle malformed canonical URL
+        // Nothing to do if the canonical URL is malformed.
         if ($configUrl === false || ! isset($configUrl['scheme']) || ! isset($configUrl['host'])) {
-            $this->setScheme('http');
-            $this->setHost('localhost');
-            $this->setPort(null);
-            $_SERVER['CANONICAL_HOST'] = 'localhost';
-            $_SERVER['CANONICAL_SCHEME'] = 'http';
             return;
         }
 
