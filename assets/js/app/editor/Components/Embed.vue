@@ -16,8 +16,8 @@
                                 type="url"
                                 :required="required"
                                 :readonly="readonly"
-                                :data-errormessage="errormessage"
-                                :pattern="pattern"
+                                :data-errormessage="typeof errormessage === 'string' ? errormessage : undefined"
+                                :pattern="typeof pattern === 'string' ? pattern : undefined"
                             />
                             <span class="input-group-append">
                                 <button
@@ -68,7 +68,7 @@
                         <input
                             class="form-control title"
                             :name="name + '[title]'"
-                            readonly=""
+                            readonly
                             :title="labels.field_title"
                             type="text"
                             :value="titleData"
@@ -76,7 +76,7 @@
                         <input
                             class="form-control author_name"
                             :name="name + '[authorname]'"
-                            readonly=""
+                            readonly
                             :title="labels.field_author"
                             type="text"
                             :value="authornameData"
@@ -108,102 +108,95 @@
     </div>
 </template>
 
-<script>
-import _ from 'lodash';
+<script setup lang="ts">
+import { ref, watch, onBeforeUnmount } from 'vue';
 import baguetteBox from 'baguettebox.js';
-import field from '../mixins/value';
+import { debounce } from '../../utils/debounce';
 
-export default {
-    name: 'EditorEmbed',
-    mixins: [field],
-    props: {
-        embedapi: String,
-        name: String,
-        authorurl: String,
-        authorname: String,
-        height: Number | String, //String if not set
-        html: String,
-        thumbnail: String,
-        title: String,
-        url: String,
-        width: Number | String, //String if not set
-        labels: Object,
-        required: Boolean,
-        readonly: Boolean,
-        errormessage: String | Boolean, //string if errormessage is set, and false otherwise
-        pattern: String | Boolean,
-    },
-    data() {
-        return {
-            authorurlData: this.authorurl,
-            authornameData: this.authorname,
-            heightData: this.height,
-            htmlData: this.html,
-            thumbnailData: this.thumbnail,
-            titleData: this.title,
-            urlData: this.url,
-            widthData: this.width,
-            loading: false,
-        };
-    },
-    watch: {
-        urlData: function () {
-            this.updateEmbed();
-        },
-    },
-    mounted() {
-        this.previewImage = this.thumbnail;
-    },
-    created: function () {
-        this.debouncedFetchEmbed = _.debounce(this.fetchEmbed, 500);
-        if (this.urlData) {
-            this.updateEmbed();
-        }
-        this.previewImage = this.thumbnail;
-    },
-    updated() {
-        baguetteBox.run('.editor__image--preview', {
-            afterShow: () => {
-                // noScroll.on();
-            },
-            afterHide: () => {
-                // noScroll.off();
-            },
+const props = defineProps<{
+    embedapi?: string;
+    name?: string;
+    authorurl?: string;
+    authorname?: string;
+    height?: number | string; //String if not set
+    html?: string;
+    thumbnail?: string;
+    title?: string;
+    url?: string;
+    width?: number | string; //String if not set
+    labels: Record<string, string>;
+    required?: boolean;
+    readonly?: boolean;
+    errormessage?: string | boolean; //string if errormessage is set, and false otherwise
+    pattern?: string | boolean;
+}>();
+
+const authorurlData = ref(props.authorurl);
+const authornameData = ref(props.authorname);
+const heightData = ref(props.height);
+const htmlData = ref(props.html);
+const thumbnailData = ref(props.thumbnail);
+const titleData = ref(props.title);
+const urlData = ref(props.url);
+const widthData = ref(props.width);
+const loading = ref(false);
+const previewImage = ref(props.thumbnail);
+
+const debouncedFetchEmbed = debounce(fetchEmbed, 500);
+
+watch(urlData, () => {
+    updateEmbed();
+});
+
+if (urlData.value) {
+    updateEmbed();
+}
+
+watch(previewImage, initPreviewLightbox, { flush: 'post', immediate: true });
+
+function initPreviewLightbox() {
+    if (!previewImage.value) {
+        return;
+    }
+
+    baguetteBox.run('.editor__image--preview', {});
+}
+
+onBeforeUnmount(() => {
+    debouncedFetchEmbed.cancel();
+});
+
+function updateEmbed() {
+    loading.value = true;
+    debouncedFetchEmbed();
+}
+
+function clearEmbed() {
+    urlData.value = '';
+}
+
+function fetchEmbed() {
+    const body = new FormData();
+    body.append('url', urlData.value ?? '');
+    body.append('_csrf_token', (document.getElementsByName('_csrf_token')[0] as HTMLInputElement).value);
+
+    fetch(props.embedapi as string, { method: 'POST', body: body })
+        .then((response) => response.json())
+        .then((json) => {
+            authorurlData.value = json.author_url;
+            authornameData.value = json.author_name;
+            heightData.value = json.height;
+            htmlData.value = json.html;
+            thumbnailData.value = json.thumbnail_url;
+            titleData.value = json.title;
+            widthData.value = json.width;
+            previewImage.value = json.thumbnail_url;
+        })
+        .catch((err) => {
+            console.warn(err);
+        })
+        .finally(() => {
+            loading.value = false;
         });
-    },
-    methods: {
-        updateEmbed: function () {
-            this.loading = true;
-            this.debouncedFetchEmbed();
-        },
-        clearEmbed: function () {
-            this.urlData = '';
-        },
-        fetchEmbed: function () {
-            const body = new FormData();
-            body.append('url', this.urlData);
-            body.append('_csrf_token', document.getElementsByName('_csrf_token')[0].value);
-
-            fetch(this.embedapi, { method: 'POST', body: body })
-                .then(response => response.json())
-                .then(json => {
-                    this.authorurlData = json.author_url;
-                    this.authornameData = json.author_name;
-                    this.heightData = json.height;
-                    this.htmlData = json.html;
-                    this.thumbnailData = json.thumbnail_url;
-                    this.titleData = json.title;
-                    //this.url          = json.url;
-                    this.widthData = json.width;
-                    this.previewImage = json.thumbnail_url;
-                })
-                .catch(err => {
-                    console.warn(err);
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
-        },
-    },
-};
+}
 </script>

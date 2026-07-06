@@ -12,32 +12,24 @@
     </section>
 </template>
 
-<script>
-export default {
-    name: 'ThemeSelect',
-
-    data: () => ({
-        themes: [
-            {
-                name: 'Default',
-                value: 'default',
-                colors: ['#1a5597', '#053b79', '#0c223b', '#ffffff'],
-            },
-            {
-                name: 'Light',
-                value: 'light',
-                colors: ['#1a5597', '#053b79', '#ffffff', '#f9f9f9'],
-            },
-        ],
-    }),
-
-    methods: {
-        selectTheme(val) {
-            const stylesheet = document.querySelector('#theme');
-            const url = stylesheet.getAttribute('href').split('theme-')[0];
-            const theme = `${url}theme-${val}.css`;
-            stylesheet.setAttribute('href', theme);
-        },
+<script setup lang="ts">
+const themes = [
+    {
+        name: 'Default',
+        value: 'default',
+        colors: ['#1a5597', '#053b79', '#0c223b', '#ffffff'],
     },
-};
+    {
+        name: 'Light',
+        value: 'light',
+        colors: ['#1a5597', '#053b79', '#ffffff', '#f9f9f9'],
+    },
+];
+
+function selectTheme(val: string) {
+    const stylesheet = document.querySelector('#theme');
+    const url = stylesheet.getAttribute('href').split('theme-')[0];
+    const theme = `${url}theme-${val}.css`;
+    stylesheet.setAttribute('href', theme);
+}
 </script>

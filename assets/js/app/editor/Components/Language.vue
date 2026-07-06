@@ -5,65 +5,65 @@
             v-model="locale"
             track-by="name"
             label="localizedname"
-            :options="locales"
+            :options="locales || []"
             :searchable="false"
             :show-labels="false"
             :limit="1"
-            @input="switchLocale()"
+            @update:model-value="switchLocale"
         >
-            <template #singleLabel="props">
-                <span class="fp me-1" :class="props.option.flag"></span>
+            <template #singleLabel="slotProps">
+                <span class="fp me-1" :class="slotProps.option.flag"></span>
                 <span>
-                    {{ props.option.name }}
-                    <small style="white-space: nowrap">({{ props.option.code }})</small>
+                    {{ slotProps.option.name }}
+                    <small style="white-space: nowrap">({{ slotProps.option.code }})</small>
                 </span>
             </template>
-            <template #option="props">
-                <span class="fp me-1" :class="props.option.flag"></span>
+            <template #option="slotProps">
+                <span class="fp me-1" :class="slotProps.option.flag"></span>
                 <span>
-                    {{ props.option.name }}
-                    <small style="white-space: nowrap">({{ props.option.code }})</small>
+                    {{ slotProps.option.name }}
+                    <small style="white-space: nowrap">({{ slotProps.option.code }})</small>
                 </span>
             </template>
         </multiselect>
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import Multiselect from 'vue-multiselect';
 
-export default {
-    name: 'EditorLanguage',
-    components: { Multiselect },
-    props: {
-        label: String,
-        locales: Array,
-        current: String,
-    },
-    data: () => {
-        return {
-            locale: {},
-        };
-    },
+const props = defineProps<{
+    label?: string;
+    locales?: Record<string, any>[];
+    current?: string;
+}>();
 
-    mounted() {
-        if (this.current) {
-            let current = this.locales.filter(locale => locale.code === this.current);
-            if (current.length > 0) {
-                this.locale = current[0];
-            } else {
-                this.locale = this.locales[0];
-            }
+const locale = ref<any>({});
+
+onMounted(() => {
+    const localesList = props.locales || [];
+    if (props.current) {
+        const currentLocale = localesList.find((l) => l.code === props.current);
+        if (currentLocale) {
+            locale.value = currentLocale;
         } else {
-            this.locale = this.locales[0];
+            locale.value = localesList[0] || {};
         }
-    },
+    } else {
+        locale.value = localesList[0] || {};
+    }
+});
 
-    methods: {
-        switchLocale() {
-            const locale = this.locale.link + location.hash;
-            return (window.location.href = locale);
-        },
-    },
-};
+function switchLocale(selected: any) {
+    if (!selected) return;
+    const link = selected.link + location.hash;
+    window.location.href = link;
+    return link;
+}
+
+defineExpose({
+    locale,
+    switchLocale,
+});
 </script>

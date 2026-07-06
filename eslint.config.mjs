@@ -1,33 +1,49 @@
 import js from '@eslint/js';
-import vuePlugin from 'eslint-plugin-vue';
-import prettierPlugin from 'eslint-plugin-prettier';
-import prettierConfig from 'eslint-config-prettier';
-import cypressPlugin from 'eslint-plugin-cypress';
+import cypress from 'eslint-plugin-cypress';
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import vue from 'eslint-plugin-vue';
 import globals from 'globals';
-import vueParser from 'vue-eslint-parser';
-import babelParser from '@babel/eslint-parser';
+import tseslint from 'typescript-eslint';
 
 export default [
-    js.configs.recommended,
-    ...vuePlugin.configs['flat/recommended'],
     {
-        plugins: {
-            prettier: prettierPlugin,
-            cypress: cypressPlugin,
-        },
+        ignores: ['node_modules/**', 'public/assets/**', 'var/**', 'vendor/**'],
+    },
+    js.configs.recommended,
+    ...tseslint.configs.recommended,
+    ...vue.configs['flat/recommended'],
+    {
+        files: ['assets/**/*.{js,ts,vue}', 'tests/cypress/**/*.js', '*.mjs'],
         languageOptions: {
+            parserOptions: {
+                parser: tseslint.parser,
+                extraFileExtensions: ['.vue'],
+            },
+            ecmaVersion: 2022,
+            sourceType: 'module',
             globals: {
                 ...globals.browser,
                 ...globals.node,
-                ...cypressPlugin.configs.globals.globals,
             },
-            parser: vueParser,
-            parserOptions: {
-                parser: babelParser,
-                ecmaVersion: 2017,
-                sourceType: 'module',
-                requireConfigFile: false,
-            },
+        },
+        rules: {
+            'no-console': ['error', { allow: ['error', 'warn'] }],
+            'no-debugger': 'error',
+            'vue/require-default-prop': 'off',
+            'vue/require-prop-type-constructor': 'off',
+            // Existing component names and kebab-case registrations are the public
+            // contract used by the Twig (in-DOM) templates; renaming is out of scope.
+            'vue/multi-word-component-names': 'off',
+            'vue/component-definition-name-casing': 'off',
+            // Pre-existing in-place prop array mutations (File, Image, Select);
+            // surfaced as warnings until refactored to emit-based updates.
+            'vue/no-mutating-props': 'warn',
+            '@typescript-eslint/no-this-alias': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-expressions': 'off',
+            '@typescript-eslint/no-unused-vars': 'warn',
+            'prettier/prettier': ['error', { printWidth: 120 }],
         },
         settings: {
             'import/resolver': {
@@ -36,27 +52,19 @@ export default [
                 },
             },
         },
-        rules: {
-            ...prettierConfig.rules,
-            ...prettierPlugin.configs.recommended.rules,
-            'no-console': ['error', { allow: ['error', 'warn'] }],
-            'no-debugger': 'error',
-            'vue/multi-word-component-names': 'off',
-            'vue/require-default-prop': 'off',
-            'vue/require-prop-type-constructor': 'off',
-            'prettier/prettier': ['error', { printWidth: 120 }],
-            // todo: To be resolved with Vue 3 upgrade (and possibly the other vue/* rules as well)
-            'vue/no-deprecated-delete-set': 'off',
-            'vue/no-deprecated-filter': 'off',
-            'vue/no-deprecated-slot-attribute': 'off',
-            'vue/no-deprecated-slot-scope-attribute': 'off',
-            'vue/no-mutating-props': 'off',
-        },
     },
     {
-        files: ['**/*.vue'],
+        files: ['tests/cypress/**/*.js'],
+        ...cypress.configs.recommended,
+    },
+    {
+        files: ['tests/unit/**/*.{js,ts}'],
         languageOptions: {
-            parser: vueParser,
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+            },
         },
     },
+    prettierRecommended,
 ];

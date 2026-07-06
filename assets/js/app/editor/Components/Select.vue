@@ -5,13 +5,13 @@
             v-model="selected"
             :limit="1000"
             :multiple="multiple"
-            :options="options"
+            :options="selectOptions"
             :options-limit="optionslimit"
             :searchable="autocomplete || taggable"
             :show-labels="false"
             :taggable="taggable"
             :disabled="readonly"
-            :data-errormessage="errormessage"
+            :data-errormessage="errormessage || undefined"
             label="value"
             tag-placeholder="Add this as new tag"
             tag-position="bottom"
@@ -19,31 +19,35 @@
             :loading="isLoading"
             @tag="addTag"
         >
-            <template v-if="name === 'status'" slot="singleLabel" slot-scope="props">
-                <span class="status me-2" :class="`is-${props.option.key}`"></span>
-                {{ props.option.value | raw }}
+            <template v-if="name === 'status'" #singleLabel="slotProps">
+                <span class="status me-2" :class="`is-${slotProps.option.key}`"></span>
+                {{ rawFilter(slotProps.option.value) }}
             </template>
-            <template v-if="name === 'status'" #option="props">
-                <span class="status me-2" :class="`is-${props.option.key}`"></span>
-                {{ props.option.value | raw }}
-            </template>
-
-            <template v-if="props.option.link_to_record_url" slot="singleLabel" slot-scope="props">
+            <template v-else-if="hasRecordLinks" #singleLabel="slotProps">
                 <!-- eslint-disable vue/no-v-html -->
-                <span v-html="props.option.value"></span>
+                <span v-html="slotProps.option.value"></span>
                 <!--eslint-enable-->
-                <div class="multiselect__tag__edit">
-                    <a :href="props.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
+                <div v-if="slotProps.option.link_to_record_url" class="multiselect__tag__edit">
+                    <a :href="slotProps.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
                         <i class="far fa-edit me-0"></i>
                     </a>
                 </div>
             </template>
 
-            <template v-if="name !== 'status'" #tag="props">
-                <span :class="{ empty: props.option.value == '' }" @drop="drop($event)" @dragover="allowDrop($event)">
+            <template v-if="name === 'status'" #option="slotProps">
+                <span class="status me-2" :class="`is-${slotProps.option.key}`"></span>
+                {{ rawFilter(slotProps.option.value) }}
+            </template>
+
+            <template v-if="name !== 'status'" #tag="slotProps">
+                <span
+                    :class="{ empty: slotProps.option.value == '' }"
+                    @drop="drop($event)"
+                    @dragover="allowDrop($event)"
+                >
                     <span
-                        :id="props.option.key"
-                        :key="props.option.value"
+                        :id="slotProps.option.key"
+                        :key="slotProps.option.value"
                         class="multiselect__tag"
                         :draggable="!taggable"
                         @dragstart="drag($event)"
@@ -55,10 +59,10 @@
                             <i class="fas fa-arrows-alt"></i>
                         </div>
                         <!-- eslint-disable-next-line vue/no-v-html -->
-                        <span v-html="props.option.value"></span>
+                        <span v-html="slotProps.option.value"></span>
 
-                        <div v-if="props.option.link_to_record_url" class="multiselect__tag__edit">
-                            <a :href="props.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
+                        <div v-if="slotProps.option.link_to_record_url" class="multiselect__tag__edit">
+                            <a :href="slotProps.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
                                 <i class="far fa-edit me-0"></i>
                             </a>
                         </div>
@@ -66,8 +70,8 @@
                         <i
                             tabindex="1"
                             class="multiselect__tag-icon"
-                            @keypress.enter.prevent="removeElement(props.option)"
-                            @mousedown.prevent="removeElement(props.option)"
+                            @keypress.enter.prevent="removeElement(slotProps.option)"
+                            @mousedown.prevent="removeElement(slotProps.option)"
                         ></i>
                     </span>
                 </span>
@@ -77,176 +81,200 @@
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 import Multiselect from 'vue-multiselect';
 import $ from 'jquery';
+import { raw } from '../../../filters/string';
 
-export default {
-    name: 'EditorSelect',
-    components: { Multiselect },
-    props: {
-        value: Array | String,
-        name: String,
-        id: String,
-        form: String,
-        options: Array,
-        optionslimit: Number,
-        multiple: Boolean,
-        taggable: Boolean,
-        readonly: Boolean,
-        classname: String,
-        autocomplete: Boolean,
-        errormessage: String | Boolean, //string if errormessage is set, and false otherwise
-        required: String | Boolean,
-        fetchurl: String,
-    },
-    data: () => {
-        return {
-            selected: [],
-        };
-    },
-    computed: {
-        sanitized() {
-            let filtered;
+const props = defineProps<{
+    value?: any[] | string;
+    name?: string;
+    id?: string;
+    form?: string;
+    options?: any[];
+    optionslimit?: number;
+    multiple?: boolean;
+    taggable?: boolean;
+    readonly?: boolean;
+    classname?: string;
+    autocomplete?: boolean;
+    errormessage?: string | boolean;
+    required?: string | boolean;
+    fetchurl?: string;
+}>();
 
-            if (this.selected === null) {
-                return JSON.stringify([]);
-            } else if (this.selected.map) {
-                filtered = this.selected.map(item => item.key);
-                return JSON.stringify(filtered);
-            } else {
-                return JSON.stringify([this.selected.key]);
+const vselect = ref<InstanceType<typeof Multiselect> | null>(null);
+
+const selected = ref<any[]>([]);
+const isLoading = ref(false);
+const selectOptions = ref<any[]>(props.options || []);
+
+const sanitized = computed(() => {
+    let filtered;
+
+    if (selected.value === null) {
+        return JSON.stringify([]);
+    } else if (Array.isArray(selected.value)) {
+        filtered = selected.value.map((item: any) => item.key);
+        return JSON.stringify(filtered);
+    } else {
+        return JSON.stringify([(selected.value as any).key]);
+    }
+});
+
+const fieldName = computed(() => {
+    return props.name + '[]';
+});
+
+const hasRecordLinks = computed(() => {
+    return selectOptions.value.some((option: any) => option && option.link_to_record_url);
+});
+
+function fixSelectedItems() {
+    const _values = !props.value ? [] : Array.isArray(props.value) ? props.value : [props.value];
+
+    let filterSelectedItems = _values
+        .map((val: string | number) => {
+            const item = selectOptions.value.filter((opt: any) => opt.key === val);
+            if (item.length > 0) {
+                return item[0];
             }
-        },
-        fieldName() {
-            return this.name + '[]';
-        },
-    },
-    mounted() {
-        /**
-         * Filter method is necessary for required fields because the empty option is not
-         * set. If the field is empty, "filterSelectedItems" will contain an undefined
-         * element and "select" will not be filled with the first available option.
-         */
-        const fixSelectedItems = function () {
-            const _values = !this.value ? [] : this.value.map ? this.value : [this.value];
+        })
+        .filter((item: any) => undefined !== item);
 
-            let filterSelectedItems = _values
-                .map(value => {
-                    const item = this.options.filter(opt => opt.key === value);
-                    if (item.length > 0) {
-                        return item[0];
-                    }
-                })
-                .filter(item => undefined !== item);
+    if (!!props.required && filterSelectedItems.length === 0) {
+        filterSelectedItems = [selectOptions.value[0]];
+    }
 
-            if (!!this._props.required && filterSelectedItems.length === 0) {
-                filterSelectedItems = [this.options[0]];
-            }
+    selected.value = filterSelectedItems;
+}
 
-            this.selected = filterSelectedItems;
-        };
+onMounted(() => {
+    if (props.fetchurl) {
+        (window as any).selectCache = (window as any).selectCache || {};
+        (window as any).requestCache = (window as any).requestCache || {};
 
-        /**
-         * If `fetchurl` is defined then pre-fill using a call. One problem is that on initialization
-         * for existing selects, multiple requests will be done at the same time. Subsequent queries
-         * can make use of the cache. Important part here is to have server-side caching.
-         */
-        if (this.fetchurl) {
-            window.selectCache = window.selectCache || {};
-            window.requestCache = window.requestCache || {};
-
-            if (window.selectCache[this.fetchurl]) {
-                this.options = window.selectCache[this.fetchurl];
-                fixSelectedItems.call(this);
-            } else if (window.requestCache[this.fetchurl]) {
-                window.requestCache[this.fetchurl].then(response => {
-                    this.options = response;
-                    fixSelectedItems.call(this);
-                });
-            } else {
-                this.isLoading = true;
-
-                window.requestCache[this.fetchurl] = $.ajax({ url: this.fetchurl, dataType: 'json', cache: true });
-                window.requestCache[this.fetchurl].then(response => {
-                    this.options = response;
-                    window.selectCache[this.fetchurl] = response;
-                    this.isLoading = false;
-                    fixSelectedItems.call(this);
-                });
-            }
+        if ((window as any).selectCache[props.fetchurl]) {
+            selectOptions.value = (window as any).selectCache[props.fetchurl];
+            fixSelectedItems();
+        } else if ((window as any).requestCache[props.fetchurl]) {
+            (window as any).requestCache[props.fetchurl].then((response: Record<string, any>[]) => {
+                selectOptions.value = response;
+                fixSelectedItems();
+            });
         } else {
-            fixSelectedItems.call(this);
+            isLoading.value = true;
+
+            (window as any).requestCache[props.fetchurl] = $.ajax({
+                url: props.fetchurl,
+                dataType: 'json',
+                cache: true,
+            });
+            (window as any).requestCache[props.fetchurl].then((response: Record<string, any>[]) => {
+                selectOptions.value = response;
+                (window as any).selectCache[props.fetchurl as string] = response;
+                isLoading.value = false;
+                fixSelectedItems();
+            });
         }
-    },
-    methods: {
-        addTag(newTag) {
-            const tag = {
-                key: newTag,
-                value: newTag,
-                selected: true,
-            };
-            this.options.push(tag);
-            this.value.push(tag);
-            this.selected.push(tag);
-        },
-        removeElement: function (element) {
-            this.$refs.vselect.removeElement(element);
-        },
-        drop(e) {
-            e.preventDefault();
+    } else {
+        fixSelectedItems();
+    }
+});
 
-            const incomingId = e.dataTransfer.getData('text');
+function addTag(newTag: string) {
+    const tag = {
+        key: newTag,
+        value: newTag,
+        selected: true,
+    };
+    selectOptions.value.push(tag);
+    selected.value.push(tag);
+}
 
-            /**
-             * JS Draggable API allows elements to be dropped inside child nodes
-             * We have to find the parent with draggable='true' to get the id.
-             */
-            const outgoingId = this.findDropElement(e.target).id;
+function removeElement(element: any) {
+    if (vselect.value) {
+        (vselect.value as any).removeElement(element);
+    }
+}
 
-            const incomingElement = this.selected.find(el => '' + el.key === '' + incomingId);
-            const outgoingElement = this.selected.find(el => '' + el.key === '' + outgoingId);
+function findDropElement(el: HTMLElement): HTMLElement {
+    while (!el.hasAttribute('draggable') && el.parentNode) {
+        el = el.parentNode as HTMLElement;
+    }
+    return el;
+}
 
-            const incomingIndex = this.selected.indexOf(incomingElement);
-            const outgoingIndex = this.selected.indexOf(outgoingElement);
+function drop(e: DragEvent) {
+    e.preventDefault();
 
-            // if dragging down, insert after. else, insert before.
-            const newPosition = incomingIndex < outgoingIndex ? outgoingIndex + 1 : outgoingIndex;
+    const incomingId = e.dataTransfer?.getData('text');
+    const outgoingId = findDropElement(e.target as HTMLElement).id;
 
-            this.selected.splice(incomingIndex, 1);
-            this.selected.splice(newPosition, 0, incomingElement);
-        },
-        findDropElement(el) {
-            while (!el.hasAttribute('draggable')) {
-                el = el.parentNode;
-            }
+    const incomingElement = selected.value.find((el: any) => '' + el.key === '' + incomingId);
+    const outgoingElement = selected.value.find((el: any) => '' + el.key === '' + outgoingId);
 
-            return el;
-        },
-        allowDrop(e) {
-            e.preventDefault();
-        },
-        drag(e) {
-            $(e.target).addClass('dragging');
-            e.dataTransfer.setData('text', e.target.id);
-        },
-        dragOver(e) {
-            const target = this.findDropElement(e.target);
+    const incomingIndex = selected.value.indexOf(incomingElement);
+    const outgoingIndex = selected.value.indexOf(outgoingElement);
 
-            // Only add dragover if not dragging over the element
-            // that is being dragged
-            if (!$(target).hasClass('dragging')) {
-                $(target).addClass('dragover');
-            }
-        },
-        dragLeave(e) {
-            const target = this.findDropElement(e.target);
-            $(target).removeClass('dragover');
-        },
-        dragEnd(e) {
-            const target = this.findDropElement(e.target);
-            $(target).removeClass('dragging');
-        },
-    },
-};
+    if (incomingIndex === -1 || outgoingIndex === -1) {
+        return;
+    }
+
+    const newPosition = incomingIndex < outgoingIndex ? outgoingIndex + 1 : outgoingIndex;
+
+    selected.value.splice(incomingIndex, 1);
+    selected.value.splice(newPosition, 0, incomingElement);
+}
+
+function allowDrop(e: DragEvent) {
+    e.preventDefault();
+}
+
+function drag(e: DragEvent) {
+    $(e.target as HTMLElement).addClass('dragging');
+    e.dataTransfer?.setData('text', (e.target as HTMLElement).id);
+}
+
+function dragOver(e: DragEvent) {
+    const target = findDropElement(e.target as HTMLElement);
+    if (!$(target).hasClass('dragging')) {
+        $(target).addClass('dragover');
+    }
+}
+
+function dragLeave(e: DragEvent) {
+    const target = findDropElement(e.target as HTMLElement);
+    $(target).removeClass('dragover');
+}
+
+function dragEnd(e: DragEvent) {
+    const target = findDropElement(e.target as HTMLElement);
+    $(target).removeClass('dragging');
+}
+
+function rawFilter(string: string) {
+    return raw(string) || '';
+}
+
+defineExpose({
+    vselect,
+    selected,
+    isLoading,
+    selectOptions,
+    sanitized,
+    fieldName,
+    hasRecordLinks,
+    addTag,
+    removeElement,
+    drop,
+    findDropElement,
+    allowDrop,
+    drag,
+    dragOver,
+    dragLeave,
+    dragEnd,
+    rawFilter,
+});
 </script>

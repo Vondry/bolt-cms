@@ -8,12 +8,12 @@
             <!-- column details / excerpt -->
             <div class="listing__row--item is-details">
                 <a class="listing__row--item-title text-decoration-none" :href="record.extras.editLink" :title="slug">
-                    {{ record.extras.title | trim(62) | raw }}
+                    {{ raw(trim(record.extras.title, 62)) }}
                 </a>
                 <span v-if="record.extras.feature" class="badge" :class="`badge-${record.extras.feature}`">{{
                     record.extras.feature
                 }}</span>
-                <span class="listing__row--item-title-excerpt">{{ record.extras.excerpt | raw }}</span>
+                <span class="listing__row--item-title-excerpt">{{ raw(record.extras.excerpt) }}</span>
             </div>
             <!-- end column -->
 
@@ -44,41 +44,31 @@
     </transition-group>
 </template>
 
-<script>
-import type from '../../../mixins/type';
-import Checkbox from './_Checkbox';
-import Meta from './_Meta';
-import Actions from './_Actions';
+<script setup lang="ts">
+import { computed } from 'vue';
+import RowCheckbox from './_Checkbox.vue';
+import RowMeta from './_Meta.vue';
+import RowActions from './_Actions.vue';
+import { trim, raw } from '../../../../../filters/string';
+import { useGeneralStore } from '../../../store';
 
-export default {
-    name: 'TableRow',
-    components: {
-        'row-checkbox': Checkbox,
-        'row-meta': Meta,
-        'row-actions': Actions,
-    },
-    mixins: [type],
-    props: {
-        record: Object,
-        labels: Object,
-    },
-    computed: {
-        slug() {
-            if (this.record.fieldValues.slug === null) {
-                return '';
-            }
-            if (typeof this.record.fieldValues.slug === 'string') {
-                return this.record.fieldValues.slug;
-            }
-            // if slug has different locales, return the 0st one
-            return this.record.fieldValues.slug[Object.keys(this.record.fieldValues.slug)[0]];
-        },
-        size() {
-            return this.$store.getters['general/getRowSize'];
-        },
-        sorting() {
-            return this.$store.getters['general/getSorting'];
-        },
-    },
-};
+const props = defineProps<{
+    record: Record<string, any>;
+    labels: Record<string, any>;
+}>();
+
+const generalStore = useGeneralStore();
+const type = computed(() => generalStore.type);
+const size = computed(() => generalStore.rowSize);
+
+const slug = computed(() => {
+    if (props.record.fieldValues.slug === null) {
+        return '';
+    }
+    if (typeof props.record.fieldValues.slug === 'string') {
+        return props.record.fieldValues.slug;
+    }
+    // if slug has different locales, return the 0st one
+    return props.record.fieldValues.slug[Object.keys(props.record.fieldValues.slug)[0]];
+});
 </script>

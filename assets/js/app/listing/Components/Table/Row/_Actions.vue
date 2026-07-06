@@ -73,50 +73,47 @@
                 <span class="dropdown-item-text">
                     <i class="fas fa-link fa-w"></i>
                     {{ labels.slug }}:
-                    <code :title="slug">{{ slug | trim(24) }}</code>
+                    <code :title="slug">{{ trim(slug, 24) }}</code>
                 </span>
                 <span class="dropdown-item-text">
                     <i class="fas fa-asterisk fa-w"></i>
                     {{ labels.created_on }}:
-                    <strong>{{ record.createdAt | datetime }}</strong>
+                    <strong>{{ datetime(record.createdAt) }}</strong>
                 </span>
                 <span class="dropdown-item-text">
                     <i class="far fa-calendar-alt fa-w"></i>
                     {{ labels.published_on }}:
-                    <strong>{{ record.publishedAt | datetime }}</strong>
+                    <strong>{{ datetime(record.publishedAt) }}</strong>
                 </span>
                 <span class="dropdown-item-text">
                     <i class="fas fa-redo fa-w"></i>
                     {{ labels.last_modified_on }}:
-                    <strong>{{ record.modifiedAt | datetime }}</strong>
+                    <strong>{{ datetime(record.modifiedAt) }}</strong>
                 </span>
             </div>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    name: 'Actions',
-    props: {
-        type: String,
-        record: Object,
-        labels: Object,
-    },
-    computed: {
-        slug() {
-            if (this.record.fieldValues.slug === null) {
-                return '';
-            }
-            if (typeof this.record.fieldValues.slug === 'string') {
-                return this.record.fieldValues.slug;
-            }
-            // if slug has different locales, return the 0st one
-            return this.record.fieldValues.slug[Object.keys(this.record.fieldValues.slug)[0]];
-        },
-    },
-    created() {
-        // console.log(this.labels);
-    },
-};
+<script setup lang="ts">
+import { computed } from 'vue';
+import { trim } from '../../../../../filters/string';
+import { datetime } from '../../../../../filters/date';
+
+const props = defineProps<{
+    type?: string;
+    record: Record<string, any>;
+    labels: Record<string, string>;
+}>();
+
+const slug = computed(() => {
+    if (props.record.fieldValues.slug === null) {
+        return '';
+    }
+    if (typeof props.record.fieldValues.slug === 'string') {
+        return props.record.fieldValues.slug;
+    }
+    // if slug has different locales, return the 0st one
+    return props.record.fieldValues.slug[Object.keys(props.record.fieldValues.slug)[0]];
+});
 </script>

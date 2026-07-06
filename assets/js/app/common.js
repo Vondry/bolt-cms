@@ -104,7 +104,7 @@ $(document).ready(function () {
      * and that its validation works.
      */
     $('.editor--date').siblings().prop('readonly', false).attr('data-readonly', 'readonly');
-    $('.editor--date').on('change', e => {
+    $('.editor--date').on('change', (e) => {
         const target = $(e.target).parent().find('input[data-readonly="readonly"]');
         if (target.val()) {
             target[0].setCustomValidity('');

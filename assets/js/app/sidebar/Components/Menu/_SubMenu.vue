@@ -22,12 +22,9 @@
     </ul>
 </template>
 
-<script>
-export default {
-    name: 'SubMenu',
-    props: {
-        item: Object,
-        labels: Object,
-    },
-};
+<script setup lang="ts">
+defineProps<{
+    item: any;
+    labels: Record<string, string>;
+}>();
 </script>
