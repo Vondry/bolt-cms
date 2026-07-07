@@ -149,11 +149,10 @@ describe('EditorSelect', () => {
             global: { components: { multiselect: Multiselect } },
         }) as SelectWrapper;
 
-        expect(selectedItems(wrapper.vm.selected)).toHaveLength(1);
-        expect(selectedItems(wrapper.vm.selected)[0]?.key).toBe('2');
-
-        // simulate single object selection by multiselect
-        wrapper.vm.selected = { key: '2', value: 'Two' };
+        // single-select initializes to a single object (not an array), matching
+        // what vue-multiselect binds via v-model.
+        expect(Array.isArray(wrapper.vm.selected)).toBe(false);
+        expect((wrapper.vm.selected as SelectOption)?.key).toBe('2');
         expect(wrapper.vm.sanitized).toBe('["2"]');
     });
 
@@ -173,8 +172,8 @@ describe('EditorSelect', () => {
             global: { components: { multiselect: Multiselect } },
         }) as SelectWrapper;
 
-        expect(selectedItems(wrapper.vm.selected)).toHaveLength(1);
-        expect(selectedItems(wrapper.vm.selected)[0]?.key).toBe(0);
+        expect(Array.isArray(wrapper.vm.selected)).toBe(false);
+        expect((wrapper.vm.selected as SelectOption)?.key).toBe(0);
     });
 
     it('adds a tag', () => {
@@ -190,6 +189,21 @@ describe('EditorSelect', () => {
                 ? wrapper.vm.selected.find((o: SelectOption) => o.key === 'New Tag')
                 : undefined,
         ).toBeTruthy();
+    });
+
+    it('replaces the selection when tagging in single-select mode', () => {
+        wrapper = mount(Select, {
+            props: { ...defaultProps, value: undefined, multiple: false, taggable: true },
+            global: { components: { multiselect: Multiselect } },
+        }) as SelectWrapper;
+
+        wrapper.vm.addTag('First Tag');
+        wrapper.vm.addTag('Second Tag');
+
+        // Single-select must hold a single object, not accumulate an array.
+        expect(Array.isArray(wrapper.vm.selected)).toBe(false);
+        expect((wrapper.vm.selected as SelectOption)?.key).toBe('Second Tag');
+        expect(wrapper.vm.sanitized).toBe('["Second Tag"]');
     });
 
     it('removes an element via refs', () => {

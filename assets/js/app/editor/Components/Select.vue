@@ -159,7 +159,11 @@ function fixSelectedItems() {
         filterSelectedItems = firstOption ? [firstOption] : [];
     }
 
-    selected.value = filterSelectedItems;
+    // vue-multiselect expects a single object (or null) when `multiple` is false.
+    // Initializing with an array there leaves `addTag` pushing into it, so a
+    // single-select field would accumulate multiple tags. Bind the shape the
+    // mode actually expects.
+    selected.value = props.multiple ? filterSelectedItems : (filterSelectedItems[0] ?? null);
 }
 
 onMounted(() => {
