@@ -14,6 +14,7 @@
             :data-errormessage="typeof errormessage === 'string' ? errormessage : undefined"
             :pattern="typeof pattern === 'string' ? pattern : undefined"
             :placeholder="typeof placeholder === 'string' ? placeholder : undefined"
+            :autofocus="autofocus == true"
         />
     </div>
 </template>
@@ -36,6 +37,7 @@ const props = defineProps<{
     errormessage?: string | boolean;
     pattern?: string | boolean;
     placeholder?: string | boolean;
+    autofocus?: boolean;
 }>();
 
 const { rawVal } = useFieldValue(props.value);

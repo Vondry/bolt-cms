@@ -61,6 +61,21 @@ export default [
         },
     },
     {
+        files: [
+            'assets/js/app/editor/Components/File.vue',
+            'assets/js/app/editor/Components/Image.vue',
+        ],
+        rules: {
+            'vuejs-accessibility/no-static-element-interactions': 'off',
+        },
+    },
+    {
+        files: ['assets/js/app/editor/Components/Text.vue'],
+        rules: {
+            'vuejs-accessibility/no-autofocus': 'off',
+        },
+    },
+    {
         files: ['tests/cypress/**/*.js'],
         ...cypress.configs.recommended,
     },

@@ -1,5 +1,4 @@
 <template>
-    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <div class="editor__file" @dragenter="onDragEnter" @dragleave="onDragLeave" @dragover.prevent @drop="onDrop">
         <transition name="fade">
             <div v-show="isDragging" class="editor__file--dragging">
