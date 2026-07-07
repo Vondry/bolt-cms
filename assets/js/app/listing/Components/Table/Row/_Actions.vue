@@ -19,25 +19,25 @@
                     {{ labels.view_on_site }}
                 </a>
                 <a
-                    v-if="record.status !== 'published'"
+                    v-if="extras.statusLink && record.status !== 'published'"
                     class="dropdown-item"
-                    :href="(extras.statusLink ?? '') + '&status=published'"
+                    :href="extras.statusLink + '&status=published'"
                 >
                     <span class="status me-1 is-published"></span>
                     {{ labels.status_to_publish }}
                 </a>
                 <a
-                    v-if="record.status !== 'held'"
+                    v-if="extras.statusLink && record.status !== 'held'"
                     class="dropdown-item"
-                    :href="(extras.statusLink ?? '') + '&status=held'"
+                    :href="extras.statusLink + '&status=held'"
                 >
                     <span class="status me-1 is-held"></span>
                     {{ labels.status_to_held }}
                 </a>
                 <a
-                    v-if="record.status !== 'draft'"
+                    v-if="extras.statusLink && record.status !== 'draft'"
                     class="dropdown-item"
-                    :href="(extras.statusLink ?? '') + '&status=draft'"
+                    :href="extras.statusLink + '&status=draft'"
                 >
                     <span class="status me-1 is-draft"></span>
                     {{ labels.status_to_draft }}
