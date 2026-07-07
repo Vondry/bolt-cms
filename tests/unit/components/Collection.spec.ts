@@ -139,6 +139,91 @@ describe('EditorCollection', () => {
         expect(wrapper.vm.counter).toBe(2);
     });
 
+    it('preserves the manually reordered submission order after a subsequent add', async () => {
+        const orderedFields = ['A', 'B', 'C'].map((label) => ({
+            label,
+            icon: 'fa-font',
+            hash: `hash${label}`,
+            buttons: templates[0].buttons,
+            content: `<input name="fields[blocks][hash${label}][text]" value="${label}" />`,
+        }));
+
+        wrapper = mount(Collection, {
+            props: {
+                name: 'fields_blocks_reorder_add',
+                templates,
+                existingFields: orderedFields,
+                labels,
+                limit: 10,
+                variant: 'expanded',
+            },
+            attachTo: document.body,
+        });
+        await wrapper.vm.$nextTick();
+
+        const collection = $('#fields_blocks_reorder_add');
+        const domOrder = () =>
+            collection
+                .children('.collection-item')
+                .map((_, el) => $(el).attr('data-collection-hash'))
+                .get();
+
+        expect(domOrder()).toEqual(['hashA', 'hashB', 'hashC']);
+
+        // Move the last item (C) up -> [A, C, B]
+        collection.children('.collection-item').last().find('.action-move-up-collection-item').trigger('click');
+        expect(domOrder()).toEqual(['hashA', 'hashC', 'hashB']);
+
+        // Add a new item. The DOM (== what gets submitted, via hash-named inputs)
+        // must keep the manual reorder rather than snapping back to [A, B, C].
+        await wrapper.find('button[data-template="Text"]').trigger('click');
+        await wrapper.vm.$nextTick();
+
+        expect(domOrder().slice(0, 3)).toEqual(['hashA', 'hashC', 'hashB']);
+        expect(domOrder()).toHaveLength(4);
+    });
+
+    it('preserves the manual reorder after removing a different item', async () => {
+        const orderedFields = ['A', 'B', 'C'].map((label) => ({
+            label,
+            icon: 'fa-font',
+            hash: `hash${label}`,
+            buttons: templates[0].buttons,
+            content: `<input name="fields[blocks][hash${label}][text]" value="${label}" />`,
+        }));
+
+        wrapper = mount(Collection, {
+            props: {
+                name: 'fields_blocks_reorder_remove',
+                templates,
+                existingFields: orderedFields,
+                labels,
+                limit: 10,
+                variant: 'expanded',
+            },
+            attachTo: document.body,
+        });
+        await wrapper.vm.$nextTick();
+
+        const collection = $('#fields_blocks_reorder_remove');
+        const domOrder = () =>
+            collection
+                .children('.collection-item')
+                .map((_, el) => $(el).attr('data-collection-hash'))
+                .get();
+
+        // Move C up -> [A, C, B]
+        collection.children('.collection-item').last().find('.action-move-up-collection-item').trigger('click');
+        expect(domOrder()).toEqual(['hashA', 'hashC', 'hashB']);
+
+        // Remove the first item (A); the moved order of the rest must survive.
+        collection.children('.collection-item').first().find('.action-remove-collection-item').trigger('click');
+        $('#modalButtonAccept').trigger('click');
+        await wrapper.vm.$nextTick();
+
+        expect(domOrder()).toEqual(['hashC', 'hashB']);
+    });
+
     it('adds an item when there is only one template', () => {
         wrapper = mount(Collection, {
             props: {
