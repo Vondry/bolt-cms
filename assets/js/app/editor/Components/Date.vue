@@ -82,13 +82,17 @@ function getLocale() {
     return undefined;
 }
 
+// flatpickr rejects `locale: undefined` (throws "invalid locale undefined"), so
+// only include the key when a locale was actually resolved; otherwise flatpickr
+// falls back to its built-in English default.
+const flatpickrLocale = getLocale();
 const config = ref<Partial<Options>>({
     wrap: true,
     altFormat: mode.value === 'datetime' ? 'F j, Y - h:i K' : 'F j, Y',
     altInput: true,
     dateFormat: 'Y-m-d H:i:S',
     enableTime: mode.value === 'datetime',
-    locale: getLocale(),
+    ...(flatpickrLocale ? { locale: flatpickrLocale } : {}),
 });
 
 const parsedLabels = computed(() => {
