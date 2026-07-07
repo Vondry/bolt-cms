@@ -4,10 +4,11 @@
 
 <script setup lang="ts">
 import { useGeneralStore, useListingStore } from '../store';
+import type { ListingRecord } from '../types';
 
 const props = defineProps<{
     type?: string;
-    data?: any[];
+    data?: ListingRecord[];
     labels?: Record<string, string>;
 }>();
 

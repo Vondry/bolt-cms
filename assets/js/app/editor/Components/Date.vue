@@ -43,10 +43,13 @@
 </template>
 
 <script setup lang="ts">
-declare const require: any;
 import { ref, computed, watch, onMounted, onUpdated } from 'vue';
+import type { Locale } from 'flatpickr/dist/types/locale';
+import type { Options } from 'flatpickr/dist/types/options';
 import flatPickr from 'vue-flatpickr-component';
 import { useFieldValue } from '../composables/useFieldValue';
+
+declare const require: (path: string) => { default: Record<string, Locale> };
 
 const props = defineProps<{
     value?: string;
@@ -64,7 +67,7 @@ const mode = computed(() => props.mode || 'date');
 const locale = computed(() => props.locale || 'en');
 const labels = computed(() => props.labels || '');
 
-const { val } = useFieldValue(props.value);
+const { val } = useFieldValue<string>(props.value ?? '');
 
 const rootEl = ref<HTMLElement | null>(null);
 
@@ -79,7 +82,7 @@ function getLocale() {
     return undefined;
 }
 
-const config = ref<Record<string, any>>({
+const config = ref<Partial<Options>>({
     wrap: true,
     altFormat: mode.value === 'datetime' ? 'F j, Y - h:i K' : 'F j, Y',
     altInput: true,

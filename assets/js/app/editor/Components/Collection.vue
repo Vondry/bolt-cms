@@ -91,10 +91,24 @@ import { ref, computed, onMounted, onUpdated, onBeforeUnmount } from 'vue';
 import $ from 'jquery';
 import { uniqid } from 'locutus/php/misc/uniqid';
 
+type CollectionTemplate = {
+    hash: string;
+    label: string;
+    icon: string;
+    buttons: string;
+    content: string;
+};
+
+type CompiledTemplate = {
+    template: string;
+};
+
+type CollectionItem = ReturnType<typeof $>;
+
 const props = defineProps<{
     name: string;
-    templates: Record<string, any>[];
-    existingFields?: Record<string, any>[];
+    templates: CollectionTemplate[];
+    existingFields?: CollectionTemplate[];
     labels: Record<string, string>;
     limit: number;
     variant: string;
@@ -121,22 +135,22 @@ const allowMore = computed(() => {
     return counter.value < props.limit;
 });
 
-const compiledTemplates = new Map();
+const compiledTemplates = new Map<string, CompiledTemplate>();
 
-function compile(element: any) {
+function compile(element: string) {
     if (!compiledTemplates.has(element)) {
         compiledTemplates.set(element, { template: element });
     }
     return compiledTemplates.get(element);
 }
 
-function setAllButtonsStates(container: any) {
+function setAllButtonsStates(container: CollectionItem) {
     container.children(selector.item).each(function (this: HTMLElement) {
         setButtonsState($(this));
     });
 }
 
-function setButtonsState(item: any) {
+function setButtonsState(item: CollectionItem) {
     //by default, enable
     item.find(selector.moveUp).first().removeAttr('disabled');
     item.find(selector.moveDown).first().removeAttr('disabled');
@@ -150,11 +164,11 @@ function setButtonsState(item: any) {
     }
 }
 
-function getPreviousCollectionItem(item: any) {
+function getPreviousCollectionItem(item: CollectionItem) {
     return item.prev('.collection-item').length === 0 ? false : item.prev('.collection-item');
 }
 
-function getNextCollectionItem(item: any) {
+function getNextCollectionItem(item: CollectionItem) {
     return item.next('.collection-item').length === 0 ? false : item.next('.collection-item');
 }
 
@@ -179,7 +193,7 @@ function addCollectionItem(event: Event) {
     // duplicate template without reference
     const selectedTemplate = getSelectedTemplate(event);
     if (!selectedTemplate) return;
-    let template = $.extend(true, {}, selectedTemplate);
+    let template: CollectionTemplate = { ...selectedTemplate };
     const realhash = uniqid();
     template.content = template.content.replace(new RegExp(template.hash, 'g'), realhash);
     template.hash = realhash;
@@ -191,7 +205,7 @@ function getSelectedTemplate(event: Event) {
     const target = $(event.target as HTMLElement).attr('data-template')
         ? $(event.target as HTMLElement)
         : $(event.target as HTMLElement).closest('[data-template]');
-    let selectValue = target.attr('data-template');
+    const selectValue = target.attr('data-template');
     return props.templates.find((template) => template.label === selectValue);
 }
 

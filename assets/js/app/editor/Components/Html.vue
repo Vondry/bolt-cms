@@ -15,7 +15,7 @@ const props = defineProps<{
     id?: string;
 }>();
 
-const val = ref<string | null>(null);
+const val = ref('');
 const config = {
     btns: [
         // ['undo', 'redo'],
@@ -33,6 +33,6 @@ const config = {
 };
 
 onMounted(() => {
-    val.value = strip(props.value);
+    val.value = strip(props.value) ?? '';
 });
 </script>

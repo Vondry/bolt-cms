@@ -51,7 +51,7 @@ describe('Meta Component', () => {
         const wrapper = mountComponent();
 
         const lis = wrapper.findAll('li');
-        expect(lis.length).toBe(3);
+        expect(lis).toHaveLength(3);
 
         const authorLi = lis[1];
         expect(authorLi.text()).toContain('John Doe');
@@ -79,6 +79,6 @@ describe('Meta Component', () => {
         const wrapper = mountComponent({ size: 'small' });
 
         const lis = wrapper.findAll('li');
-        expect(lis.length).toBe(1); // Only the date should be visible
+        expect(lis).toHaveLength(1); // Only the date should be visible
     });
 });

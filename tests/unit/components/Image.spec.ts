@@ -1,4 +1,5 @@
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import ImageField from '@/editor/Components/Image.vue';
 import Axios from 'axios';
 import { renable } from '@/patience-is-a-virtue';
@@ -25,7 +26,11 @@ vi.mock('bootstrap', () => {
 });
 
 describe('EditorImage Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance>;
+    type FieldEvent = [{ fieldName: string }];
+    type UploadProgressConfig = {
+        onUploadProgress: (event: { loaded: number; total: number }) => void;
+    };
 
     const defaultProps = {
         filename: 'photo.jpg',
@@ -80,8 +85,7 @@ describe('EditorImage Component', () => {
         { group: 'files', value: 'files/virus.exe', text: 'virus.exe' },
     ];
 
-    const filenameInput = () =>
-        wrapper.find('input[name="fields[image][filename]"]');
+    const filenameInput = () => wrapper.find('input[name="fields[image][filename]"]');
     const altInput = () => wrapper.find('input[name="fields[image][alt]"]');
     const uploadInput = () => wrapper.find('input[type="file"]');
 
@@ -99,10 +103,7 @@ describe('EditorImage Component', () => {
     });
 
     afterEach(() => {
-        if (wrapper) {
-            wrapper.unmount();
-        }
-        wrapper = null;
+        wrapper.unmount();
         document.body.innerHTML = '';
         vi.clearAllMocks();
         vi.restoreAllMocks();
@@ -112,21 +113,16 @@ describe('EditorImage Component', () => {
     it('renders the filename, media, alt and upload inputs', () => {
         wrapper = mount(ImageField, { props: defaultProps });
 
-        expect(
-            (wrapper.find('input[name="fields[image][media]"]').element as any)
-                .value,
-        ).toBe('7');
-        expect((filenameInput().element as any).value).toBe('photo.jpg');
+        expect((wrapper.find('input[name="fields[image][media]"]').element as HTMLInputElement).value).toBe('7');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('photo.jpg');
         expect(filenameInput().attributes('data-errormessage')).toBe('Error!');
-        expect((altInput().element as any).value).toBe('A photo');
+        expect((altInput().element as HTMLInputElement).value).toBe('A photo');
         expect(altInput().attributes('placeholder')).toBe('Alt text…');
         expect(altInput().attributes('pattern')).toBe('.+');
         expect(uploadInput().attributes('name')).toBe('fields[image][]');
         expect(uploadInput().attributes('id')).toBe('field-image');
         expect(uploadInput().attributes('accept')).toBe('.jpg,.png,.xyz');
-        expect(wrapper.find('a.dropdown-item').attributes('href')).toBe(
-            '/attributes?file=photo.jpg',
-        );
+        expect(wrapper.find('a.dropdown-item').attributes('href')).toBe('/attributes?file=photo.jpg');
     });
 
     it('derives the preview and thumbnail from the filename', async () => {
@@ -135,26 +131,20 @@ describe('EditorImage Component', () => {
 
         const preview = wrapper.find('.editor__image--preview-image');
         expect(preview.attributes('href')).toBe('/thumbs/1000×1000/photo.jpg');
-        expect(preview.attributes('style')).toContain(
-            '/thumbs/400×300/photo.jpg',
-        );
+        expect(preview.attributes('style')).toContain('/thumbs/400×300/photo.jpg');
     });
 
     it('hides the preview when there is no filename', () => {
         wrapper = mount(ImageField, {
             props: { ...defaultProps, filename: '' },
         });
-        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(
-            false,
-        );
+        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(false);
 
         wrapper.unmount();
         wrapper = mount(ImageField, {
             props: { ...defaultProps, filename: undefined },
         });
-        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(
-            false,
-        );
+        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(false);
     });
 
     it('omits the alt input when includeAlt is off', () => {
@@ -197,14 +187,12 @@ describe('EditorImage Component', () => {
             },
         });
 
-        const captionInput = wrapper.find(
-            'input[name="fields[image][caption]"]',
-        );
-        expect((captionInput.element as any).value).toBe('Old caption');
+        const captionInput = wrapper.find('input[name="fields[image][caption]"]');
+        expect((captionInput.element as HTMLInputElement).value).toBe('Old caption');
         expect(captionInput.attributes('placeholder')).toBe('Caption…');
 
         await captionInput.setValue('New caption');
-        expect((captionInput.element as any).value).toBe('New caption');
+        expect((captionInput.element as HTMLInputElement).value).toBe('New caption');
     });
 
     it('accepts missing extra data', () => {
@@ -224,10 +212,7 @@ describe('EditorImage Component', () => {
             },
         });
 
-        expect(
-            (wrapper.find('input[name="fields[image][0]"]').element as any)
-                .value,
-        ).toBe('first');
+        expect((wrapper.find('input[name="fields[image][0]"]').element as HTMLInputElement).value).toBe('first');
     });
 
     it('keeps the edited alt text in the input', async () => {
@@ -235,17 +220,18 @@ describe('EditorImage Component', () => {
 
         await altInput().setValue('New alt');
 
-        expect((altInput().element as any).value).toBe('New alt');
+        expect((altInput().element as HTMLInputElement).value).toBe('New alt');
     });
 
     it('toggles page scrolling around the lightbox', async () => {
         wrapper = mount(ImageField, { props: defaultProps });
         await wrapper.vm.$nextTick();
 
-        const options = baguetteBox.run.mock.calls.at(-1)[1];
-        options.afterShow();
+        const options = vi.mocked(baguetteBox.run).mock.calls.at(-1)?.[1];
+        expect(options).toBeDefined();
+        options?.afterShow?.();
         expect(noScroll.on).toHaveBeenCalled();
-        options.afterHide();
+        options?.afterHide?.();
         expect(noScroll.off).toHaveBeenCalled();
     });
 
@@ -267,39 +253,31 @@ describe('EditorImage Component', () => {
 
         const [moveUp, moveDown] = wrapper
             .findAll('button')
-            .filter(
-                (b) =>
-                    b.text().includes('Move up') ||
-                    b.text().includes('Move down'),
-            );
+            .filter((b) => b.text().includes('Move up') || b.text().includes('Move down'));
 
-        await moveUp.trigger('click');
-        await moveDown.trigger('click');
+        expect(moveUp).toBeDefined();
+        expect(moveDown).toBeDefined();
+        await moveUp?.trigger('click');
+        await moveDown?.trigger('click');
 
-        expect(wrapper.emitted('moveImageUp')[0][0].fieldName).toBe(
-            'fields[image][]',
-        );
-        expect(wrapper.emitted('moveImageDown')[0][0].fieldName).toBe(
-            'fields[image][]',
-        );
+        const moveImageUpEvents = wrapper.emitted('moveImageUp') as FieldEvent[];
+        const moveImageDownEvents = wrapper.emitted('moveImageDown') as FieldEvent[];
+        expect(moveImageUpEvents[0]?.[0].fieldName).toBe('fields[image][]');
+        expect(moveImageDownEvents[0]?.[0].fieldName).toBe('fields[image][]');
     });
 
     it('clears the image and alt and emits remove when removing', async () => {
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const removeButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('Remove'));
-        await removeButton.trigger('click');
+        const removeButton = wrapper.findAll('button').find((b) => b.text().includes('Remove'));
+        expect(removeButton).toBeDefined();
+        await removeButton?.trigger('click');
 
-        expect((filenameInput().element as any).value).toBe('');
-        expect((altInput().element as any).value).toBe('');
-        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(
-            false,
-        );
-        expect(wrapper.emitted('remove')[0][0].fieldName).toBe(
-            'fields[image][]',
-        );
+        expect((filenameInput().element as HTMLInputElement).value).toBe('');
+        expect((altInput().element as HTMLInputElement).value).toBe('');
+        expect(wrapper.find('.editor__image--preview-image').exists()).toBe(false);
+        const removeEvents = wrapper.emitted('remove') as FieldEvent[];
+        expect(removeEvents[0]?.[0].fieldName).toBe('fields[image][]');
     });
 
     it('keeps the alt text when removing without includeAlt', async () => {
@@ -307,31 +285,27 @@ describe('EditorImage Component', () => {
             props: { ...defaultProps, includeAlt: false },
         });
 
-        const removeButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('Remove'));
-        await removeButton.trigger('click');
+        const removeButton = wrapper.findAll('button').find((b) => b.text().includes('Remove'));
+        expect(removeButton).toBeDefined();
+        await removeButton?.trigger('click');
 
         expect(wrapper.emitted('remove')).toHaveLength(1);
     });
 
     it('opens the file dialog when the upload button is clicked', async () => {
         wrapper = mount(ImageField, { props: defaultProps });
-        const clickSpy = vi.spyOn(uploadInput().element, 'click');
+        const clickSpy = vi.spyOn(uploadInput().element as HTMLInputElement, 'click');
 
-        const uploadButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('Upload'));
-        await uploadButton.trigger('click');
+        const uploadButton = wrapper.findAll('button').find((b) => b.text().includes('Upload'));
+        expect(uploadButton).toBeDefined();
+        await uploadButton?.trigger('click');
 
         expect(clickSpy).toHaveBeenCalled();
     });
 
     it('shows the drag overlay while dragging over the field', async () => {
         wrapper = mount(ImageField, { props: defaultProps });
-        const overlayDisplay = () =>
-            (wrapper.find('.editor__image--dragging').element as HTMLElement)
-                .style.display;
+        const overlayDisplay = () => (wrapper.find('.editor__image--dragging').element as HTMLElement).style.display;
 
         expect(overlayDisplay()).toBe('none');
 
@@ -347,8 +321,8 @@ describe('EditorImage Component', () => {
     });
 
     it('uploads a dropped image and tracks the progress', async () => {
-        let resolvePost;
-        (Axios.post as any).mockImplementation(
+        let resolvePost: (value: { data: string }) => void = () => {};
+        (Axios.post as import('vitest').Mock).mockImplementation(
             () =>
                 new Promise((resolve) => {
                     resolvePost = resolve;
@@ -360,29 +334,29 @@ describe('EditorImage Component', () => {
 
         await wrapper.trigger('drop', { dataTransfer: { files: [image] } });
 
-        const [url, formData, config] = (Axios.post as any).mock.calls[0];
+        const [url, formData, config] = (Axios.post as import('vitest').Mock).mock.calls[0] as [
+            string,
+            FormData,
+            UploadProgressConfig,
+        ];
         expect(url).toBe('/async/upload');
         expect(formData.get('image')).toBe(image);
         expect(formData.get('_csrf_token')).toBe('csrf123');
 
         config.onUploadProgress({ loaded: 1, total: 2 });
         await wrapper.vm.$nextTick();
-        expect(wrapper.find('.progress-bar').attributes('aria-valuenow')).toBe(
-            '50',
-        );
+        expect(wrapper.find('.progress-bar').attributes('aria-valuenow')).toBe('50');
 
         resolvePost({ data: 'new.jpg' });
         await flushPromises();
 
-        expect((filenameInput().element as any).value).toBe('new.jpg');
-        expect(
-            wrapper.find('.editor__image--preview-image').attributes('href'),
-        ).toBe('/thumbs/1000×1000/new.jpg');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('new.jpg');
+        expect(wrapper.find('.editor__image--preview-image').attributes('href')).toBe('/thumbs/1000×1000/new.jpg');
         expect(wrapper.find('.progress').exists()).toBe(false);
     });
 
     it('uploads an image picked through the file input', async () => {
-        (Axios.post as any).mockResolvedValue({ data: 'picked.jpg' });
+        (Axios.post as import('vitest').Mock).mockResolvedValue({ data: 'picked.jpg' });
         wrapper = mount(ImageField, { props: defaultProps });
 
         const image = new File(['dummy'], 'picked.jpg');
@@ -392,13 +366,13 @@ describe('EditorImage Component', () => {
         await uploadInput().trigger('change');
         await flushPromises();
 
-        expect((filenameInput().element as any).value).toBe('picked.jpg');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('picked.jpg');
     });
 
     it('alerts when the upload fails', async () => {
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        (Axios.post as any).mockRejectedValue({
+        (Axios.post as import('vitest').Mock).mockRejectedValue({
             response: { data: { error: { message: 'too big' } } },
         });
 
@@ -414,64 +388,53 @@ describe('EditorImage Component', () => {
     });
 
     it('browses the server images in a modal and applies the selection', async () => {
-        (Axios.get as any).mockResolvedValue({ data: serverFiles });
+        (Axios.get as import('vitest').Mock).mockResolvedValue({ data: serverFiles });
         wrapper = mount(ImageField, { props: defaultProps });
 
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        expect(Axios.get as any).toHaveBeenCalledWith(
-            '/async/files?location=files',
-        );
+        expect(Axios.get as import('vitest').Mock).toHaveBeenCalledWith('/async/files?location=files');
 
-        const modalBody = document.querySelector(
-            '#resourcesModal .modal-body',
-        ) as any;
-        expect(
-            (document.querySelector('#resourcesModal .modal-title') as any)
-                .innerHTML,
-        ).toBe('Select an image');
+        const modalBody = document.querySelector('#resourcesModal .modal-body') as HTMLElement;
+        expect((document.querySelector('#resourcesModal .modal-title') as HTMLElement).innerHTML).toBe(
+            'Select an image',
+        );
         // Image cards use thumbnails, directories render as folders, exe is filtered
         expect(modalBody.innerHTML).toContain('/thumbs/250×150×crop/photo.jpg');
         expect(modalBody.innerHTML).toContain('fa-folder');
         expect(modalBody.innerHTML).not.toContain('virus.exe');
-        expect(
-            document.querySelector('#resourcesModal .modal-footer') as any,
-        ).toBeNull();
+        expect(document.querySelector('#resourcesModal .modal-footer')).toBeNull();
         expect(renable).toHaveBeenCalled();
 
-        const checkbox = modalBody.querySelector(
-            'input.form-check-input',
-        ) as any;
+        const checkbox = modalBody.querySelector('input.form-check-input') as HTMLInputElement;
         checkbox.click();
-        expect(Modal.getOrCreateInstance().hide).toHaveBeenCalled();
+        expect(
+            Modal.getOrCreateInstance(document.getElementById('resourcesModal') as HTMLElement).hide,
+        ).toHaveBeenCalled();
 
         checkbox.checked = true;
-        document
-            .getElementById('resourcesModal')
-            .dispatchEvent(new Event('hidden.bs.modal'));
+        document.getElementById('resourcesModal')?.dispatchEvent(new Event('hidden.bs.modal'));
         await wrapper.vm.$nextTick();
 
-        expect((filenameInput().element as any).value).toBe('photo.jpg');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('photo.jpg');
         expect(resetModalContent).toHaveBeenCalledWith(defaultProps.labels);
     });
 
     it('keeps the filename when the modal closes without a selection', async () => {
-        (Axios.get as any).mockResolvedValue({ data: serverFiles });
+        (Axios.get as import('vitest').Mock).mockResolvedValue({ data: serverFiles });
         wrapper = mount(ImageField, { props: defaultProps });
 
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        document
-            .getElementById('resourcesModal')
-            .dispatchEvent(new Event('hidden.bs.modal'));
+        document.getElementById('resourcesModal')?.dispatchEvent(new Event('hidden.bs.modal'));
 
-        expect((filenameInput().element as any).value).toBe('photo.jpg');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('photo.jpg');
     });
 
     it('adds a back arrow when browsing inside a subdirectory', async () => {
-        (Axios.get as any).mockResolvedValue({
+        (Axios.get as import('vitest').Mock).mockResolvedValue({
             data: [
                 {
                     group: 'files',
@@ -486,14 +449,13 @@ describe('EditorImage Component', () => {
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        expect(
-            (document.querySelector('#resourcesModal .modal-body') as any)
-                .innerHTML,
-        ).toContain('fa-level-up-alt');
+        expect((document.querySelector('#resourcesModal .modal-body') as HTMLElement).innerHTML).toContain(
+            'fa-level-up-alt',
+        );
     });
 
     it('shows no back arrow at the top level', async () => {
-        (Axios.get as any).mockResolvedValue({
+        (Axios.get as import('vitest').Mock).mockResolvedValue({
             data: [
                 {
                     group: 'files',
@@ -508,46 +470,42 @@ describe('EditorImage Component', () => {
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        expect(
-            (document.querySelector('#resourcesModal .modal-body') as any)
-                .innerHTML,
-        ).not.toContain('fa-level-up-alt');
+        expect((document.querySelector('#resourcesModal .modal-body') as HTMLElement).innerHTML).not.toContain(
+            'fa-level-up-alt',
+        );
     });
 
     it('navigates into a directory from the modal', async () => {
-        (Axios.get as any).mockResolvedValue({ data: serverFiles });
+        (Axios.get as import('vitest').Mock).mockResolvedValue({ data: serverFiles });
         wrapper = mount(ImageField, { props: defaultProps });
 
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        const directoryLink = document.querySelector(
-            '#resourcesModal .directory',
-        ) as any;
+        const directoryLink = document.querySelector('#resourcesModal .directory') as HTMLAnchorElement;
         directoryLink.click();
         await flushPromises();
 
-        expect(Axios.get as any).toHaveBeenCalledTimes(2);
-        expect(
-            (document.querySelector('#resourcesModal .modal-title') as any)
-                .innerHTML,
-        ).toContain('Select an image:');
+        expect(Axios.get as import('vitest').Mock).toHaveBeenCalledTimes(2);
+        expect((document.querySelector('#resourcesModal .modal-title') as HTMLElement).innerHTML).toContain(
+            'Select an image:',
+        );
 
-        const checkbox = document.querySelector(
-            '#resourcesModal .form-check-input',
-        ) as any;
+        const checkbox = document.querySelector('#resourcesModal .form-check-input') as HTMLInputElement;
         checkbox.click();
-        expect(Modal.getOrCreateInstance().hide).toHaveBeenCalled();
+        expect(
+            Modal.getOrCreateInstance(document.getElementById('resourcesModal') as HTMLElement).hide,
+        ).toHaveBeenCalled();
 
         // Directory links in the refreshed modal keep navigating deeper
-        (document.querySelector('#resourcesModal .directory') as any).click();
+        (document.querySelector('#resourcesModal .directory') as HTMLElement).click();
         await flushPromises();
-        expect(Axios.get as any).toHaveBeenCalledTimes(3);
+        expect(Axios.get as import('vitest').Mock).toHaveBeenCalledTimes(3);
     });
 
     it('alerts when loading the server images fails', async () => {
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-        (Axios.get as any).mockRejectedValue({
+        (Axios.get as import('vitest').Mock).mockRejectedValue({
             response: { data: 'no access' },
         });
 
@@ -555,74 +513,66 @@ describe('EditorImage Component', () => {
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            'no access<br>Image did not upload.',
-        );
+        expect(alertSpy).toHaveBeenCalledWith('no access<br>Image did not upload.');
         expect(renable).toHaveBeenCalled();
     });
 
     it('alerts when navigating a directory fails', async () => {
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-        (Axios.get as any).mockResolvedValueOnce({ data: serverFiles });
+        (Axios.get as import('vitest').Mock).mockResolvedValueOnce({ data: serverFiles });
         wrapper = mount(ImageField, { props: defaultProps });
 
         await wrapper.find('button.dropdown-item').trigger('click');
         await flushPromises();
 
-        (Axios.get as any).mockRejectedValueOnce({
+        (Axios.get as import('vitest').Mock).mockRejectedValueOnce({
             response: { data: 'no access' },
         });
-        (document.querySelector('#resourcesModal .directory') as any).click();
+        (document.querySelector('#resourcesModal .directory') as HTMLElement).click();
         await flushPromises();
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            'no access<br>Image did not upload.',
-        );
+        expect(alertSpy).toHaveBeenCalledWith('no access<br>Image did not upload.');
         expect(renable).toHaveBeenCalled();
     });
 
     it('uploads an image from a url through the modal', async () => {
         vi.useFakeTimers();
-        (Axios.post as any).mockResolvedValue({ data: 'remote.jpg' });
+        (Axios.post as import('vitest').Mock).mockResolvedValue({ data: 'remote.jpg' });
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const fromUrlButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('From URL'));
-        await fromUrlButton.trigger('click');
+        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        expect(fromUrlButton).toBeDefined();
+        await fromUrlButton?.trigger('click');
 
-        expect(
-            (document.querySelector('#resourcesModal .modal-title') as any)
-                .innerHTML,
-        ).toBe('Upload from URL');
+        expect((document.querySelector('#resourcesModal .modal-title') as HTMLElement).innerHTML).toBe(
+            'Upload from URL',
+        );
         expect(renable).toHaveBeenCalled();
 
         vi.advanceTimersByTime(5);
-        const urlInput = document.querySelector(
-            'input[name=from-url-input]',
-        ) as any;
+        const urlInput = document.querySelector('input[name=from-url-input]') as HTMLInputElement;
         expect(urlInput).not.toBeNull();
 
         urlInput.value = 'https://example.org/remote.jpg';
-        document.getElementById('modalButtonAccept').click();
+        document.getElementById('modalButtonAccept')?.click();
         await flushPromises();
 
-        const [url, formData, config] = (Axios.post as any).mock.calls[0];
+        const [url, formData, config] = (Axios.post as import('vitest').Mock).mock.calls[0] as [
+            string,
+            FormData,
+            UploadProgressConfig,
+        ];
         expect(url).toBe('/async/upload/url');
         expect(formData.get('url')).toBe('https://example.org/remote.jpg');
         expect(formData.get('_csrf_token')).toBe('csrf123');
-        expect((filenameInput().element as any).value).toBe('remote.jpg');
+        expect((filenameInput().element as HTMLInputElement).value).toBe('remote.jpg');
 
         // The url upload reports progress through the same handler
         config.onUploadProgress({ loaded: 3, total: 4 });
         await wrapper.vm.$nextTick();
-        expect(wrapper.find('.progress-bar').attributes('aria-valuenow')).toBe(
-            '75',
-        );
+        expect(wrapper.find('.progress-bar').attributes('aria-valuenow')).toBe('75');
 
-        document
-            .getElementById('resourcesModal')
-            .dispatchEvent(new Event('hidden.bs.modal'));
+        document.getElementById('resourcesModal')?.dispatchEvent(new Event('hidden.bs.modal'));
         expect(resetModalContent).toHaveBeenCalledWith(defaultProps.labels);
     });
 
@@ -630,35 +580,33 @@ describe('EditorImage Component', () => {
         vi.useFakeTimers();
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const fromUrlButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('From URL'));
-        await fromUrlButton.trigger('click');
+        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        expect(fromUrlButton).toBeDefined();
+        await fromUrlButton?.trigger('click');
         vi.advanceTimersByTime(5);
 
-        document.getElementById('modalButtonAccept').click();
+        document.getElementById('modalButtonAccept')?.click();
 
-        expect(Axios.post as any).not.toHaveBeenCalled();
+        expect(Axios.post as import('vitest').Mock).not.toHaveBeenCalled();
     });
 
     it('alerts when the url upload fails', async () => {
         vi.useFakeTimers();
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        (Axios.post as any).mockRejectedValue({
+        (Axios.post as import('vitest').Mock).mockRejectedValue({
             response: { data: { error: { message: 'bad url' } } },
         });
 
         wrapper = mount(ImageField, { props: defaultProps });
-        const fromUrlButton = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('From URL'));
-        await fromUrlButton.trigger('click');
+        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        expect(fromUrlButton).toBeDefined();
+        await fromUrlButton?.trigger('click');
         vi.advanceTimersByTime(5);
 
-        (document.querySelector('input[name=from-url-input]') as any).value =
+        (document.querySelector('input[name=from-url-input]') as HTMLInputElement).value =
             'https://example.org/bad.jpg';
-        document.getElementById('modalButtonAccept').click();
+        document.getElementById('modalButtonAccept')?.click();
         await flushPromises();
 
         expect(alertSpy).toHaveBeenCalledWith('bad url');

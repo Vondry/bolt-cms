@@ -21,12 +21,8 @@ describe('EditorCheckbox Component', () => {
         expect(checkbox.attributes('id')).toBe('field-published');
         expect(checkbox.attributes('name')).toBe('fields[published]');
         expect(wrapper.find('label').text()).toBe('Published');
-        expect(wrapper.find('.custom-control').classes()).toContain(
-            'form-switch',
-        );
-        expect(
-            (wrapper.find('input[type="hidden"]').element as any).value,
-        ).toBe('true');
+        expect(wrapper.find('.custom-control').classes()).toContain('form-switch');
+        expect((wrapper.find('input[type="hidden"]').element as HTMLInputElement).value).toBe('true');
     });
 
     it('renders unchecked without the switch class in checkbox mode', () => {
@@ -34,16 +30,9 @@ describe('EditorCheckbox Component', () => {
             props: { ...defaultProps, value: false, mode: 'checkbox' },
         });
 
-        expect(
-            (wrapper.find('input[type="checkbox"]').element as HTMLInputElement)
-                .checked,
-        ).toBe(false);
-        expect(wrapper.find('.custom-control').classes()).not.toContain(
-            'form-switch',
-        );
-        expect(
-            (wrapper.find('input[type="hidden"]').element as any).value,
-        ).toBe('false');
+        expect((wrapper.find('input[type="checkbox"]').element as HTMLInputElement).checked).toBe(false);
+        expect(wrapper.find('.custom-control').classes()).not.toContain('form-switch');
+        expect((wrapper.find('input[type="hidden"]').element as HTMLInputElement).value).toBe('false');
     });
 
     it('mirrors checkbox changes into the hidden submit value', async () => {
@@ -53,8 +42,6 @@ describe('EditorCheckbox Component', () => {
 
         await wrapper.find('input[type="checkbox"]').setValue(true);
 
-        expect(
-            (wrapper.find('input[type="hidden"]').element as any).value,
-        ).toBe('true');
+        expect((wrapper.find('input[type="hidden"]').element as HTMLInputElement).value).toBe('true');
     });
 });

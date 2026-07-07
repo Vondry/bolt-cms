@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import Text from '@/editor/Components/Text.vue';
 import { eventBus } from '@/eventBus';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('EditorText Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     const defaultProps = {
         value: 'Initial text',
@@ -101,10 +102,7 @@ describe('EditorText Component', () => {
 
         await wrapper.find('input').setValue('New Title');
 
-        expect(emitSpy).not.toHaveBeenCalledWith(
-            'slugify-from-title',
-            expect.anything(),
-        );
+        expect(emitSpy.mock.calls.some(([event]) => event === 'slugify-from-title')).toBe(false);
     });
 
     it('emits slugify-from-title on input when generation is on', async () => {
@@ -136,10 +134,7 @@ describe('EditorText Component', () => {
         });
         await wrapper.find('input').setValue('New Title');
 
-        expect(emitSpy).not.toHaveBeenCalledWith(
-            'slugify-from-title',
-            expect.anything(),
-        );
+        expect(emitSpy.mock.calls.some(([event]) => event === 'slugify-from-title')).toBe(false);
     });
 
     it('ignores generation events for unrelated source fields', async () => {
@@ -152,10 +147,7 @@ describe('EditorText Component', () => {
         });
         await wrapper.find('input').setValue('New Title');
 
-        expect(emitSpy).not.toHaveBeenCalledWith(
-            'slugify-from-title',
-            expect.anything(),
-        );
+        expect(emitSpy.mock.calls.some(([event]) => event === 'slugify-from-title')).toBe(false);
     });
 
     it('unsubscribes from generate-from-title when destroyed', () => {

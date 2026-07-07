@@ -50,6 +50,7 @@
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
 import { useSelectingStore } from '../store';
+import type { BulkAction } from '../types';
 
 const props = defineProps<{
     singular?: string;
@@ -61,7 +62,7 @@ const props = defineProps<{
 
 const selectingStore = useSelectingStore();
 
-const selectedAction = ref<Record<string, any> | null>(null);
+const selectedAction = ref<BulkAction | null>(null);
 
 const options = [
     {

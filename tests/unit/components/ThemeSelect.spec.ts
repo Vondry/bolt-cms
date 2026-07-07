@@ -4,8 +4,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('ThemeSelect Component', () => {
     beforeEach(() => {
-        document.head.innerHTML =
-            '<link id="theme" rel="stylesheet" href="/assets/css/theme-default.css" />';
+        document.head.innerHTML = '<link id="theme" rel="stylesheet" href="/assets/css/theme-default.css" />';
     });
 
     afterEach(() => {
@@ -27,7 +26,7 @@ describe('ThemeSelect Component', () => {
 
         await wrapper.findAll('.theme')[1].trigger('click');
 
-        expect(document.querySelector('#theme').getAttribute('href')).toBe(
+        expect(document.querySelector<HTMLLinkElement>('#theme')?.getAttribute('href')).toBe(
             '/assets/css/theme-light.css',
         );
     });

@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import cypress from 'eslint-plugin-cypress';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import sonarjs from 'eslint-plugin-sonarjs';
 import vue from 'eslint-plugin-vue';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -12,8 +13,9 @@ export default [
     js.configs.recommended,
     ...tseslint.configs.recommended,
     ...vue.configs['flat/recommended'],
+    sonarjs.configs.recommended,
     {
-        files: ['assets/**/*.{js,ts,vue}', 'tests/cypress/**/*.js', '*.mjs'],
+        files: ['assets/**/*.{js,ts,vue}', 'tests/unit/**/*.ts', 'tests/cypress/**/*.js', '*.mjs'],
         languageOptions: {
             parserOptions: {
                 parser: tseslint.parser,
@@ -35,14 +37,9 @@ export default [
             // contract used by the Twig (in-DOM) templates; renaming is out of scope.
             'vue/multi-word-component-names': 'off',
             'vue/component-definition-name-casing': 'off',
-            // Pre-existing in-place prop array mutations (File, Image, Select);
-            // surfaced as warnings until refactored to emit-based updates.
-            'vue/no-mutating-props': 'warn',
             '@typescript-eslint/no-this-alias': 'off',
             '@typescript-eslint/no-require-imports': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-unused-expressions': 'off',
-            '@typescript-eslint/no-unused-vars': 'warn',
+            '@typescript-eslint/no-explicit-any': 'error',
             'prettier/prettier': ['error', { printWidth: 120 }],
         },
         settings: {

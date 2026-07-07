@@ -26,7 +26,7 @@ describe('EditorHtml Component', () => {
         await wrapper.vm.$nextTick();
 
         const textarea = wrapper.get('textarea');
-        expect((textarea.element as any).value).toBe('<p>Hello</p>');
+        expect((textarea.element as HTMLTextAreaElement).value).toBe('<p>Hello</p>');
         expect(textarea.attributes('name')).toBe('fields[body]');
         expect(textarea.attributes('id')).toBe('field-body');
     });
@@ -48,8 +48,6 @@ describe('EditorHtml Component', () => {
         await wrapper.vm.$nextTick();
 
         await wrapper.get('textarea').setValue('<p>Changed</p>');
-        expect((wrapper.get('textarea').element as any).value).toBe(
-            '<p>Changed</p>',
-        );
+        expect((wrapper.get('textarea').element as HTMLTextAreaElement).value).toBe('<p>Changed</p>');
     });
 });

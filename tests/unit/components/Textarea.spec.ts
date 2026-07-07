@@ -1,9 +1,10 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import Textarea from '@/editor/Components/Textarea.vue';
 import { describe, it, expect, afterEach } from 'vitest';
 
 describe('EditorTextarea Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     const defaultProps = {
         id: 'field-body',
@@ -30,7 +31,7 @@ describe('EditorTextarea Component', () => {
         await wrapper.vm.$nextTick();
 
         const textarea = wrapper.find('textarea');
-        expect((textarea.element as any).value).toBe('Fish & Chips');
+        expect((textarea.element as HTMLTextAreaElement).value).toBe('Fish & Chips');
         expect(textarea.attributes('id')).toBe('field-body');
         expect(textarea.attributes('name')).toBe('fields[body]');
         expect(textarea.attributes('title')).toBe('fields[body]');
@@ -98,6 +99,6 @@ describe('EditorTextarea Component', () => {
         const textarea = wrapper.find('textarea');
         await textarea.setValue('Changed body');
 
-        expect((textarea.element as any).value).toBe('Changed body');
+        expect((textarea.element as HTMLTextAreaElement).value).toBe('Changed body');
     });
 });

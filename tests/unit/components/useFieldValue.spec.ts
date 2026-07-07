@@ -18,9 +18,7 @@ describe('useFieldValue', () => {
     });
 
     it('unescapes HTML entities into rawVal', () => {
-        const { rawVal } = useFieldValue(
-            'Fish &amp; Chips &lt;fresh&gt; &quot;daily&quot;',
-        );
+        const { rawVal } = useFieldValue('Fish &amp; Chips &lt;fresh&gt; &quot;daily&quot;');
         expect(rawVal.value).toBe('Fish & Chips <fresh> "daily"');
     });
 

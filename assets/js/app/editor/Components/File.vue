@@ -139,7 +139,7 @@
             tabindex="-1"
             type="file"
             :accept="acceptedExtensions"
-            @change="uploadFile(($event.target as HTMLInputElement).files![0])"
+            @change="uploadSelectedFile"
         />
     </div>
 </template>
@@ -147,7 +147,9 @@
 <script setup lang="ts">
 import { ref, computed, useTemplateRef } from 'vue';
 import Axios from 'axios';
+import type { AxiosError, AxiosProgressEvent } from 'axios';
 import { createServerFileBrowser, type ServerFile } from '../utils/serverFileBrowser';
+import { getUploadErrorMessage, type UploadErrorResponse } from '../utils/upload';
 
 const props = defineProps<{
     name?: string;
@@ -227,14 +229,19 @@ function onRemoveFile() {
 }
 
 function selectUploadFile() {
-    (selectFile.value as HTMLInputElement).click();
+    selectFile.value?.click();
 }
 
 function generateModalContent(inputOptions: ServerFile[]) {
+    const firstOption = inputOptions[0];
+    if (!firstOption) {
+        return '';
+    }
+
     let filePath = '';
-    let folderPath = inputOptions[0].value;
-    let baseAsyncPath = inputOptions[0].base_url_path;
-    let fileIcons = {
+    let folderPath = firstOption.value;
+    let baseAsyncPath = firstOption.base_url_path ?? '';
+    let fileIcons: Record<string, string> = {
         jpg: 'fa-file-image',
         jpeg: 'fa-file-image',
         png: 'fa-file-image',
@@ -262,7 +269,7 @@ function generateModalContent(inputOptions: ServerFile[]) {
     let modalContent = '<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2">';
     // If we are deep in the directory, add an arrow to navigate back to previous folder
     if (folderPath.includes('/')) {
-        let pathChunks = inputOptions[0].value.split('/');
+        let pathChunks = firstOption.value.split('/');
         pathChunks.pop();
         pathChunks.pop();
         filePath = pathChunks.join('/');
@@ -286,7 +293,7 @@ function generateModalContent(inputOptions: ServerFile[]) {
         }
     }
     inputOptions.forEach((element, key) => {
-        let filenameExtension = element.text.split('.').pop().toLowerCase();
+        let filenameExtension = element.text.split('.').pop()?.toLowerCase() ?? '';
         if (element.group == 'directories') {
             filePath = element.value;
             let baseAsyncUrl = `${baseAsyncPath}?location=${filePath}&type=files`;
@@ -351,15 +358,31 @@ function onDrop(e: DragEvent) {
     e.stopPropagation();
     isDragging.value = false;
     dragCount.value = 0;
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer?.files[0];
+    if (!file) {
+        return;
+    }
+
     return uploadFile(file);
 }
 
+function uploadSelectedFile(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+        uploadFile(file);
+    }
+}
+
 function uploadFile(file: File) {
+    if (!props.directory) {
+        return;
+    }
+
     const fd = new FormData();
     const config = {
-        onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+            const total = progressEvent.total ?? progressEvent.loaded;
+            const percentCompleted = total > 0 ? Math.round((progressEvent.loaded * 100) / total) : 0;
             progress.value = percentCompleted;
         },
         headers: {
@@ -367,21 +390,14 @@ function uploadFile(file: File) {
         },
     };
     fd.append('file', file);
-    fd.append('_csrf_token', token.value);
-    Axios.post(props.directory, fd, config)
+    fd.append('_csrf_token', token.value ?? '');
+    Axios.post<string>(props.directory, fd, config)
         .then((res) => {
             filenameData.value = res.data;
             progress.value = 0;
         })
-        .catch((err) => {
-            const responseData = err.response.data;
-            let errorMessage = 'unknown error';
-            if (typeof responseData === 'string' || responseData instanceof String) {
-                errorMessage = String(responseData);
-            } else if (responseData.error && responseData.error.message) {
-                errorMessage = responseData.error.message;
-            }
-            window.alert(errorMessage + '<br>File did not upload.');
+        .catch((err: AxiosError<UploadErrorResponse>) => {
+            window.alert(getUploadErrorMessage(err) + '<br>File did not upload.');
             console.warn(err);
             progress.value = 0;
         });

@@ -27,8 +27,13 @@ const themes = [
 ];
 
 function selectTheme(val: string) {
-    const stylesheet = document.querySelector('#theme');
-    const url = stylesheet.getAttribute('href').split('theme-')[0];
+    const stylesheet = document.querySelector<HTMLLinkElement>('#theme');
+    const href = stylesheet?.getAttribute('href');
+    if (!stylesheet || !href) {
+        return;
+    }
+
+    const url = href.split('theme-')[0];
     const theme = `${url}theme-${val}.css`;
     stylesheet.setAttribute('href', theme);
 }

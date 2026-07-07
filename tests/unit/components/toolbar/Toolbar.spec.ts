@@ -55,9 +55,7 @@ describe('Toolbar Component', () => {
         const wrapper = mountComponent();
 
         expect(wrapper.find('img[alt="⚙️ Bolt"]').exists()).toBe(true);
-        expect(wrapper.find('.toolbar-item__site a').attributes('href')).toBe(
-            '/',
-        );
+        expect(wrapper.find('.toolbar-item__site a').attributes('href')).toBe('/');
 
         // Search form
         const searchInput = wrapper.find('input#global-search');
@@ -76,9 +74,7 @@ describe('Toolbar Component', () => {
 
         const impDiv = wrapper.find('.toolbar-impersonation');
         expect(impDiv.exists()).toBe(true);
-        expect(impDiv.find('a').attributes('href')).toBe(
-            '/dashboard?_switch_user=_exit',
-        );
+        expect(impDiv.find('a').attributes('href')).toBe('/dashboard?_switch_user=_exit');
         expect(impDiv.text()).toContain('Stop Impersonating');
 
         // Also check greeting badge

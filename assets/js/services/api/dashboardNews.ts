@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-export function getNews() {
-    return JSON.parse(localStorage.getItem('dashboardnews'));
+type DashboardNews = string | number | boolean | null | DashboardNews[] | { [key: string]: DashboardNews };
+
+export function getNews(): DashboardNews | null {
+    const news = localStorage.getItem('dashboardnews');
+    return news ? (JSON.parse(news) as DashboardNews) : null;
 }
 
 export function fetchNews() {

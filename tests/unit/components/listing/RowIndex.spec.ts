@@ -58,13 +58,9 @@ describe('Listing Row Component', () => {
         const wrapper = mountComponent();
 
         // Check if elements are rendered
-        expect(wrapper.find('.listing__row--item-title').text()).toBe(
-            'My Title',
-        );
+        expect(wrapper.find('.listing__row--item-title').text()).toBe('My Title');
         expect(wrapper.find('.badge').text()).toBe('Featured');
-        expect(wrapper.find('.listing__row--item-title-excerpt').text()).toBe(
-            'This is an excerpt',
-        );
+        expect(wrapper.find('.listing__row--item-title-excerpt').text()).toBe('This is an excerpt');
 
         // Thumbnail should be rendered
         const img = wrapper.find('.listing__row--item.is-thumbnail img');
@@ -72,22 +68,16 @@ describe('Listing Row Component', () => {
         expect(img.attributes('src')).toBe('thumb.jpg');
 
         // Stubs should exist
-        expect(wrapper.findComponent({ name: 'row-checkbox' }).exists()).toBe(
-            true,
-        );
+        expect(wrapper.findComponent({ name: 'row-checkbox' }).exists()).toBe(true);
         expect(wrapper.findComponent({ name: 'row-meta' }).exists()).toBe(true);
-        expect(wrapper.findComponent({ name: 'row-actions' }).exists()).toBe(
-            true,
-        );
+        expect(wrapper.findComponent({ name: 'row-actions' }).exists()).toBe(true);
     });
 
     it('does not render checkbox if type is dashboard', () => {
         generalStore.type = 'dashboard';
         const wrapper = mountComponent();
 
-        expect(wrapper.findComponent({ name: 'row-checkbox' }).exists()).toBe(
-            false,
-        );
+        expect(wrapper.findComponent({ name: 'row-checkbox' }).exists()).toBe(false);
     });
 
     it('does not render thumbnail if size is small', () => {
@@ -95,9 +85,7 @@ describe('Listing Row Component', () => {
         generalStore.rowSize = 'small';
         const wrapper = mountComponent();
 
-        expect(wrapper.find('.listing__row--item.is-thumbnail').exists()).toBe(
-            false,
-        );
+        expect(wrapper.find('.listing__row--item.is-thumbnail').exists()).toBe(false);
     });
 
     it('extracts slug correctly from multi-locale field', () => {

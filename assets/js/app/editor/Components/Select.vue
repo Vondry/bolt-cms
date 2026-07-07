@@ -86,13 +86,26 @@ import { ref, computed, onMounted } from 'vue';
 import Multiselect from 'vue-multiselect';
 import $ from 'jquery';
 import { raw } from '../../../filters/string';
+import type { SelectOption, SelectValue, SelectedValue } from '../types';
+
+type SelectCache = Record<string, SelectOption[]>;
+type SelectRequest = PromiseLike<SelectOption[]>;
+type RequestCache = Partial<Record<string, SelectRequest>>;
+type SelectWindow = Window &
+    typeof globalThis & {
+        selectCache?: SelectCache;
+        requestCache?: RequestCache;
+    };
+type RemovableMultiselect = {
+    removeElement(element: SelectOption): void;
+};
 
 const props = defineProps<{
-    value?: any[] | string;
+    value?: SelectValue;
     name?: string;
     id?: string;
     form?: string;
-    options?: any[];
+    options?: SelectOption[];
     optionslimit?: number;
     multiple?: boolean;
     taggable?: boolean;
@@ -104,22 +117,20 @@ const props = defineProps<{
     fetchurl?: string;
 }>();
 
-const vselect = ref<InstanceType<typeof Multiselect> | null>(null);
+const vselect = ref<RemovableMultiselect | null>(null);
 
-const selected = ref<any[]>([]);
+const selected = ref<SelectedValue>([]);
 const isLoading = ref(false);
-const selectOptions = ref<any[]>(props.options || []);
+const selectOptions = ref<SelectOption[]>(props.options || []);
 
 const sanitized = computed(() => {
-    let filtered;
-
     if (selected.value === null) {
         return JSON.stringify([]);
     } else if (Array.isArray(selected.value)) {
-        filtered = selected.value.map((item: any) => item.key);
+        const filtered = selected.value.map((item) => item.key);
         return JSON.stringify(filtered);
     } else {
-        return JSON.stringify([(selected.value as any).key]);
+        return JSON.stringify([selected.value.key]);
     }
 });
 
@@ -128,23 +139,22 @@ const fieldName = computed(() => {
 });
 
 const hasRecordLinks = computed(() => {
-    return selectOptions.value.some((option: any) => option && option.link_to_record_url);
+    return selectOptions.value.some((option) => option && option.link_to_record_url);
 });
 
 function fixSelectedItems() {
-    const _values = !props.value ? [] : Array.isArray(props.value) ? props.value : [props.value];
+    let _values: Array<string | number> = [];
+    if (props.value) {
+        _values = Array.isArray(props.value) ? props.value : [props.value];
+    }
 
-    let filterSelectedItems = _values
-        .map((val: string | number) => {
-            const item = selectOptions.value.filter((opt: any) => opt.key === val);
-            if (item.length > 0) {
-                return item[0];
-            }
-        })
-        .filter((item: any) => undefined !== item);
+    let filterSelectedItems: SelectOption[] = _values
+        .map((val) => selectOptions.value.find((opt) => opt.key === val))
+        .filter((item): item is SelectOption => item !== undefined);
 
     if (!!props.required && filterSelectedItems.length === 0) {
-        filterSelectedItems = [selectOptions.value[0]];
+        const firstOption = selectOptions.value[0];
+        filterSelectedItems = firstOption ? [firstOption] : [];
     }
 
     selected.value = filterSelectedItems;
@@ -152,28 +162,33 @@ function fixSelectedItems() {
 
 onMounted(() => {
     if (props.fetchurl) {
-        (window as any).selectCache = (window as any).selectCache || {};
-        (window as any).requestCache = (window as any).requestCache || {};
+        const cacheWindow = window as SelectWindow;
+        const selectCache = (cacheWindow.selectCache = cacheWindow.selectCache || {});
+        const requestCache = (cacheWindow.requestCache = cacheWindow.requestCache || {});
 
-        if ((window as any).selectCache[props.fetchurl]) {
-            selectOptions.value = (window as any).selectCache[props.fetchurl];
+        if (selectCache[props.fetchurl]) {
+            selectOptions.value = selectCache[props.fetchurl];
             fixSelectedItems();
-        } else if ((window as any).requestCache[props.fetchurl]) {
-            (window as any).requestCache[props.fetchurl].then((response: Record<string, any>[]) => {
-                selectOptions.value = response;
-                fixSelectedItems();
-            });
         } else {
+            const cachedRequest = requestCache[props.fetchurl];
+            if (cachedRequest) {
+                cachedRequest.then((response) => {
+                    selectOptions.value = response;
+                    fixSelectedItems();
+                });
+                return;
+            }
+
             isLoading.value = true;
 
-            (window as any).requestCache[props.fetchurl] = $.ajax({
+            requestCache[props.fetchurl] = $.ajax({
                 url: props.fetchurl,
                 dataType: 'json',
                 cache: true,
-            });
-            (window as any).requestCache[props.fetchurl].then((response: Record<string, any>[]) => {
+            }) as SelectRequest;
+            requestCache[props.fetchurl]?.then((response) => {
                 selectOptions.value = response;
-                (window as any).selectCache[props.fetchurl as string] = response;
+                selectCache[props.fetchurl as string] = response;
                 isLoading.value = false;
                 fixSelectedItems();
             });
@@ -184,18 +199,22 @@ onMounted(() => {
 });
 
 function addTag(newTag: string) {
-    const tag = {
+    const tag: SelectOption = {
         key: newTag,
         value: newTag,
         selected: true,
     };
     selectOptions.value.push(tag);
-    selected.value.push(tag);
+    if (Array.isArray(selected.value)) {
+        selected.value.push(tag);
+    } else {
+        selected.value = [tag];
+    }
 }
 
-function removeElement(element: any) {
+function removeElement(element: SelectOption) {
     if (vselect.value) {
-        (vselect.value as any).removeElement(element);
+        vselect.value.removeElement(element);
     }
 }
 
@@ -212,8 +231,16 @@ function drop(e: DragEvent) {
     const incomingId = e.dataTransfer?.getData('text');
     const outgoingId = findDropElement(e.target as HTMLElement).id;
 
-    const incomingElement = selected.value.find((el: any) => '' + el.key === '' + incomingId);
-    const outgoingElement = selected.value.find((el: any) => '' + el.key === '' + outgoingId);
+    if (!Array.isArray(selected.value)) {
+        return;
+    }
+
+    const incomingElement = selected.value.find((el) => '' + el.key === '' + incomingId);
+    const outgoingElement = selected.value.find((el) => '' + el.key === '' + outgoingId);
+
+    if (!incomingElement || !outgoingElement) {
+        return;
+    }
 
     const incomingIndex = selected.value.indexOf(incomingElement);
     const outgoingIndex = selected.value.indexOf(outgoingElement);

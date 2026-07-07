@@ -1,15 +1,15 @@
-declare let XRegExp: any;
+declare const XRegExp: ((pattern: string, flags?: string) => RegExp) | undefined;
 
-export function slugify(string) {
-    if (string) {
+export function slugify(input?: string | number | null) {
+    if (input) {
         // based on https://github.com/sgmurphy/3095196
-        string = String(string);
+        let string = String(input);
         const opt = {
             delimiter: '-',
             lowercase: true,
             transliterate: typeof XRegExp === 'undefined' ? true : false,
         };
-        const char_map = {
+        const char_map: Record<string, string> = {
             // Latin
             À: 'A',
             Á: 'A',
@@ -324,13 +324,13 @@ export function slugify(string) {
     }
 }
 
-export function strip(string) {
+export function strip(string?: string | null) {
     if (string) {
         return string.replace(/(^")|("$)/g, '');
     }
 }
 
-export function raw(string) {
+export function raw(string?: string | null) {
     if (string) {
         const node = document.createElement('textarea');
         node.innerHTML = string;
@@ -338,11 +338,11 @@ export function raw(string) {
     }
 }
 
-export function uppercase(string) {
+export function uppercase(string?: string | null) {
     if (string) return string.toUpperCase();
 }
 
-export function trim(string, length) {
+export function trim(string: string, length = 50) {
     if (length == undefined) {
         length = 50;
     }

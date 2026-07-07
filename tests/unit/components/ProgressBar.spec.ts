@@ -23,15 +23,11 @@ describe('ProgressBar Component', () => {
 
     it('applies the height when given', () => {
         const wrapper = mount(ProgressBar, { props: { height: '4px' } });
-        expect(
-            (wrapper.find('.progress').element as HTMLElement).style.height,
-        ).toBe('4px');
+        expect((wrapper.find('.progress').element as HTMLElement).style.height).toBe('4px');
     });
 
     it('applies no height by default', () => {
         const wrapper = mount(ProgressBar);
-        expect(
-            (wrapper.find('.progress').element as HTMLElement).style.height,
-        ).toBe('');
+        expect((wrapper.find('.progress').element as HTMLElement).style.height).toBe('');
     });
 });

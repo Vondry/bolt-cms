@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import type { ListingRecord } from '../types';
 
 interface GeneralState {
     type: string | null;
@@ -15,7 +16,7 @@ export const useGeneralStore = defineStore('listing-general', {
 });
 
 interface ListingState {
-    records: any[];
+    records: ListingRecord[];
 }
 
 export const useListingStore = defineStore('listing', {

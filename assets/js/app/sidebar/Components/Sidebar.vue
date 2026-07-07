@@ -12,9 +12,10 @@
 import SidebarMenu from './Menu/index.vue';
 import SidebarToggler from './_SidebarToggler.vue';
 import { useGeneralStore } from '../store';
+import type { SidebarMenuItem } from '../types';
 
 defineProps<{
-    menu: any[];
+    menu: SidebarMenuItem[];
     version: string;
     aboutLink: string;
     labels: Record<string, string>;

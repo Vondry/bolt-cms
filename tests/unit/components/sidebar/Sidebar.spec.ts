@@ -46,12 +46,8 @@ describe('Sidebar Component', () => {
         expect(footer.find('a').attributes('href')).toBe('/about');
         expect(footer.text()).toContain('Bolt version 4.0.0');
 
-        expect(wrapper.findComponent({ name: 'sidebar-menu' }).exists()).toBe(
-            true,
-        );
-        expect(
-            wrapper.findComponent({ name: 'sidebar-toggler' }).exists(),
-        ).toBe(true);
+        expect(wrapper.findComponent({ name: 'sidebar-menu' }).exists()).toBe(true);
+        expect(wrapper.findComponent({ name: 'sidebar-toggler' }).exists()).toBe(true);
     });
 
     it('sets slimSidebar from localStorage if true', () => {

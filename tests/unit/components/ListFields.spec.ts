@@ -24,9 +24,7 @@ describe('Editor list fields', () => {
         });
 
         expect(wrapper.vm.containerFiles).toEqual([]);
-        expect(wrapper.find('input[type="hidden"]').attributes('name')).toBe(
-            'fields[files]',
-        );
+        expect(wrapper.find('input[type="hidden"]').attributes('name')).toBe('fields[files]');
     });
 
     it('mounts imagelist with default empty images', () => {
@@ -45,8 +43,6 @@ describe('Editor list fields', () => {
         });
 
         expect(wrapper.vm.containerImages).toEqual([]);
-        expect(wrapper.find('input[type="hidden"]').attributes('name')).toBe(
-            'fields[images]',
-        );
+        expect(wrapper.find('input[type="hidden"]').attributes('name')).toBe('fields[images]');
     });
 });

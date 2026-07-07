@@ -1,9 +1,10 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import NumberField from '@/editor/Components/Number.vue';
 import { describe, it, expect, afterEach } from 'vitest';
 
 describe('EditorNumber Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     const defaultProps = {
         id: 'field-amount',
@@ -32,7 +33,7 @@ describe('EditorNumber Component', () => {
 
         const input = wrapper.find('input');
         expect(input.attributes('type')).toBe('number');
-        expect((input.element as any).value).toBe('42');
+        expect((input.element as HTMLInputElement).value).toBe('42');
         expect(input.attributes('id')).toBe('field-amount');
         expect(input.attributes('name')).toBe('fields[amount]');
         expect(input.attributes('step')).toBe('1');
@@ -76,6 +77,6 @@ describe('EditorNumber Component', () => {
         const input = wrapper.find('input');
         await input.setValue('7');
 
-        expect((input.element as any).value).toBe('7');
+        expect((input.element as HTMLInputElement).value).toBe('7');
     });
 });

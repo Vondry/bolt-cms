@@ -1,9 +1,10 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import Email from '@/editor/Components/Email.vue';
 import { describe, it, expect, afterEach } from 'vitest';
 
 describe('EditorEmail Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     const defaultProps = {
         value: 'info@example.org',

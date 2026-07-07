@@ -13,6 +13,7 @@ import { computed } from 'vue';
 import draggable from 'vuedraggable';
 import TableRow from './Row/index.vue';
 import { useListingStore } from '../../store';
+import type { ListingRecord } from '../../types';
 
 defineProps<{
     labels: Record<string, string>;
@@ -24,7 +25,7 @@ const records = computed({
     get() {
         return listingStore.records;
     },
-    set(val: any[]) {
+    set(val: ListingRecord[]) {
         listingStore.records = val;
     },
 });

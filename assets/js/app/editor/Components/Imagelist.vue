@@ -12,14 +12,14 @@
                 :directory="directory"
                 :filelist="filelist"
                 :csrf-token="csrfToken"
-                :labels="labels"
+                :labels="labelsValue"
                 :in-imagelist="true"
                 :name="fieldName(child.containerIndex)"
-                :extensions="extensions"
+                :extensions="extensionsValue"
                 :is-first-in-imagelist="isFirstInImagelist(activeIndex)"
                 :is-last-in-imagelist="isLastInImagelist(activeIndex)"
                 :readonly="readonly"
-                :extra-fields="extraFields"
+                :extra-fields="extraFieldsValue"
                 :extra-data="child"
                 @remove="onRemoveImage"
                 @move-image-up="onMoveImageUp"
@@ -32,7 +32,7 @@
 
         <button class="btn btn-tertiary" type="button" :disabled="!allowMore" @click="addImage">
             <i class="fas fa-fw fa-plus"></i>
-            {{ labels.add_new_image }}
+            {{ labelsValue.add_new_image }}
         </button>
     </div>
 </template>
@@ -40,9 +40,34 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import EditorImage from './Image.vue';
+import type { FieldMovePayload } from '../types';
+
+type ExtraImageField = {
+    label: string;
+    placeholder?: string;
+};
+
+type ImageField = {
+    id: number;
+    containerIndex?: number;
+    filename?: string;
+    thumbnail?: string;
+    title?: string;
+    alt?: string;
+    media?: string | number;
+    hidden?: boolean;
+    inImagelist?: boolean;
+    directory?: string;
+    name?: string;
+    filelist?: string;
+    csrfToken?: string;
+    labels?: Record<string, string>;
+    extensions?: string[];
+    [key: string]: string | number | boolean | Record<string, string> | string[] | undefined;
+};
 
 const props = defineProps<{
-    images?: Record<string, any>[];
+    images?: Omit<ImageField, 'id'>[];
     directory?: string;
     name?: string;
     filelist?: string;
@@ -52,11 +77,16 @@ const props = defineProps<{
     attributesLink?: string;
     limit?: number;
     readonly?: boolean;
-    extraFields?: Record<string, any>;
+    extraFields?: Record<string, ExtraImageField> | ExtraImageField[];
 }>();
 
 const counter = ref(0);
-const containerImages = ref<any[]>([]);
+const containerImages = ref<ImageField[]>([]);
+const labelsValue = computed(() => props.labels ?? {});
+const extensionsValue = computed(() => props.extensions ?? []);
+const extraFieldsValue = computed<Record<string, ExtraImageField>>(() =>
+    Array.isArray(props.extraFields) ? {} : (props.extraFields ?? {}),
+);
 
 const initialImages = props.images || [];
 initialImages.forEach((image, index) => {
@@ -89,14 +119,14 @@ function getActiveImageFields() {
     return activeImageFields.value;
 }
 
-function getFieldNumberFromElement(elem: Record<string, any>) {
+function getFieldNumberFromElement(elem: FieldMovePayload) {
     // get the last number because in collections, there are multiple.
     const matches = [...elem.fieldName.matchAll(/\d+/g)];
     const lastMatch = matches.splice(-1).pop();
-    return parseInt(lastMatch![0]);
+    return lastMatch ? parseInt(lastMatch[0]) : 0;
 }
 
-function onMoveImageDown(elem: Record<string, any>) {
+function onMoveImageDown(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
     const activeIndexes = getActiveContainerIndexes();
     const activePosition = activeIndexes.indexOf(fieldNumber);
@@ -112,7 +142,7 @@ function onMoveImageDown(elem: Record<string, any>) {
     }
 }
 
-function onMoveImageUp(elem: Record<string, any>) {
+function onMoveImageUp(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
     const activeIndexes = getActiveContainerIndexes();
     const activePosition = activeIndexes.indexOf(fieldNumber);
@@ -128,7 +158,7 @@ function onMoveImageUp(elem: Record<string, any>) {
     }
 }
 
-function onRemoveImage(elem: Record<string, any>) {
+function onRemoveImage(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
     const updatedImage = containerImages.value[fieldNumber];
     updatedImage.hidden = true;

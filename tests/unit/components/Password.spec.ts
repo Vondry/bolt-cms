@@ -1,9 +1,10 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import { describe, expect, it, afterEach, vi } from 'vitest';
 import Password from '@/editor/Components/Password.vue';
 
 describe('EditorPassword', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     afterEach(() => {
         if (wrapper) {
@@ -27,7 +28,7 @@ describe('EditorPassword', () => {
 
         const input = wrapper.get('input');
 
-        expect((input.element as any).value).toBe('');
+        expect((input.element as HTMLInputElement).value).toBe('');
         expect(input.attributes('data-errormessage')).toBeUndefined();
         expect(input.attributes('pattern')).toBeUndefined();
         expect(input.attributes('placeholder')).toBeUndefined();
@@ -48,7 +49,7 @@ describe('EditorPassword', () => {
         });
 
         const input = wrapper.get('input');
-        expect((input.element as any).value).toBe('hunter2');
+        expect((input.element as HTMLInputElement).value).toBe('hunter2');
         expect(input.attributes('id')).toBe('login_password');
         expect(input.attributes('name')).toBe('login[password]');
         expect(input.attributes('required')).toBeDefined();
@@ -64,9 +65,7 @@ describe('EditorPassword', () => {
         await wrapper.vm.$nextTick();
 
         expect(wrapper.get('input').attributes('type')).toBe('text');
-        expect(wrapper.get('.toggle-password').classes()).toContain(
-            'fa-eye-slash',
-        );
+        expect(wrapper.get('.toggle-password').classes()).toContain('fa-eye-slash');
     });
 
     it('keeps the password masked on mount when hidden', () => {
@@ -110,13 +109,13 @@ describe('EditorPassword', () => {
         });
 
         const input = wrapper.get('input');
-        (input.element as any).value = 'hunter2';
+        (input.element as HTMLInputElement).value = 'hunter2';
         await input.trigger('input');
 
         const bar = wrapper.get('.progress-bar');
         expect(bar.attributes('aria-valuenow')).toBe('3');
         expect(bar.attributes('aria-valuemax')).toBe('4');
-        expect(bar.element.style.width).toBe('75%');
+        expect(bar.attributes('style')).toBe('width: 75%;');
     });
 
     it('measures the initial value on mount when strength is enabled', async () => {
@@ -133,8 +132,6 @@ describe('EditorPassword', () => {
         await wrapper.vm.$nextTick();
 
         expect(zxcvbn).toHaveBeenCalledWith('hunter2');
-        expect(wrapper.get('.progress-bar').attributes('aria-valuenow')).toBe(
-            '2',
-        );
+        expect(wrapper.get('.progress-bar').attributes('aria-valuenow')).toBe('2');
     });
 });

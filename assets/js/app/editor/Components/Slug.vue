@@ -115,7 +115,7 @@ function editSlug() {
 
 function lockSlug() {
     emitGenerateFromTitle(false);
-    val.value = slugify(val.value);
+    val.value = slugify(val.value) ?? '';
     edit.value = false;
     locked.value = true;
     buttonText.value = props.labels.button_locked;
@@ -123,7 +123,7 @@ function lockSlug() {
 }
 
 function generateSlug() {
-    val.value = slugify(getGeneratedSourceValue(' '));
+    val.value = slugify(getGeneratedSourceValue(' ')) ?? '';
     emitGenerateFromTitle(true);
 
     edit.value = false;

@@ -1,10 +1,22 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import Language from '@/editor/Components/Language.vue';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import Multiselect from 'vue-multiselect';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('EditorLanguage Component', () => {
-    let wrapper;
-    let originalLocation;
+    type LocaleOption = {
+        code: string;
+        name: string;
+        localizedname: string;
+        link: string;
+    };
+    type LanguageExpose = {
+        locale: LocaleOption | null;
+        switchLocale: (selected: LocaleOption | null) => string | undefined;
+    };
+    let wrapper: VueWrapper<ComponentPublicInstance & LanguageExpose>;
+    let originalLocation: Location;
 
     const locales = [
         { code: 'en', name: 'English', localizedname: 'English', link: '/en' },
@@ -13,16 +25,18 @@ describe('EditorLanguage Component', () => {
 
     beforeEach(() => {
         originalLocation = window.location;
-        delete window.location;
-        window.location = { ...originalLocation, href: '', hash: '#hash' };
+        Object.defineProperty(window, 'location', {
+            configurable: true,
+            value: { ...originalLocation, href: '', hash: '#hash' },
+        });
     });
 
     afterEach(() => {
-        if (wrapper) {
-            wrapper.unmount();
-        }
-        wrapper = null;
-        window.location = originalLocation;
+        wrapper?.unmount();
+        Object.defineProperty(window, 'location', {
+            configurable: true,
+            value: originalLocation,
+        });
     });
 
     it('sets locale to current if found in locales', () => {
@@ -90,7 +104,7 @@ describe('EditorLanguage Component', () => {
         });
 
         // Use findComponent with class
-        const multiselect = wrapper.findComponent('.multiselect');
+        const multiselect = wrapper.findComponent(Multiselect);
         multiselect.vm.$emit('update:model-value', locales[1]);
 
         expect(window.location.href).toBe('/nl#hash');
@@ -114,7 +128,7 @@ describe('EditorLanguage Component', () => {
             props: { label: 'Language', current: 'en' },
         });
 
-        expect(wrapper.vm.locale).toEqual({});
+        expect(wrapper.vm.locale).toBeNull();
     });
 
     it('handles undefined locales and missing current', () => {
@@ -122,7 +136,7 @@ describe('EditorLanguage Component', () => {
             props: { label: 'Language' },
         });
 
-        expect(wrapper.vm.locale).toEqual({});
+        expect(wrapper.vm.locale).toBeNull();
     });
 
     it('covers the option slot function directly', () => {
@@ -130,7 +144,7 @@ describe('EditorLanguage Component', () => {
             props: { label: 'Language', locales },
         });
 
-        const multiselect = wrapper.findComponent('.multiselect');
+        const multiselect = wrapper.findComponent(Multiselect);
         if (multiselect.vm.$slots && multiselect.vm.$slots.option) {
             const vnodes = multiselect.vm.$slots.option({ option: locales[0] });
             expect(vnodes).toBeDefined();

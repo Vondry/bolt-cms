@@ -1,18 +1,14 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./assets/js/app/*"]
     },
-    "allowJs": true,
-    "checkJs": false,
-    "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "moduleResolution": "node",
+    "strict": true,
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "ignoreDeprecations": "6.0"
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
   },
-  "include": ["assets/js/**/*", "assets/js/**/*.vue", "tests/**/*.ts"]
+  "include": ["assets/js/**/*.ts", "assets/js/**/*.d.ts", "assets/js/**/*.vue", "tests/unit/**/*.ts"]
 }

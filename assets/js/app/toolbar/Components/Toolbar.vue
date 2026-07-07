@@ -92,10 +92,11 @@
 import { computed, onMounted } from 'vue';
 import tinycolor from 'tinycolor2';
 import { useGeneralStore } from '../store';
+import type { SidebarMenuItem } from '../../sidebar/types';
 
 defineProps<{
     siteName?: string;
-    menu?: Record<string, any>[];
+    menu?: SidebarMenuItem[];
     labels: Record<string, string>;
     urlPaths: Record<string, string>;
     backendPrefix?: string;

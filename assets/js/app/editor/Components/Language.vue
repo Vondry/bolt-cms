@@ -33,13 +33,21 @@
 import { ref, onMounted } from 'vue';
 import Multiselect from 'vue-multiselect';
 
+type LocaleOption = {
+    code: string;
+    name: string;
+    localizedname: string;
+    flag?: string;
+    link: string;
+};
+
 const props = defineProps<{
     label?: string;
-    locales?: Record<string, any>[];
+    locales?: LocaleOption[];
     current?: string;
 }>();
 
-const locale = ref<any>({});
+const locale = ref<LocaleOption | null>(null);
 
 onMounted(() => {
     const localesList = props.locales || [];
@@ -48,17 +56,17 @@ onMounted(() => {
         if (currentLocale) {
             locale.value = currentLocale;
         } else {
-            locale.value = localesList[0] || {};
+            locale.value = localesList[0] ?? null;
         }
     } else {
-        locale.value = localesList[0] || {};
+        locale.value = localesList[0] ?? null;
     }
 });
 
-function switchLocale(selected: any) {
+function switchLocale(selected: LocaleOption | null) {
     if (!selected) return;
     const link = selected.link + location.hash;
-    window.location.href = link;
+    globalThis.location.href = link;
     return link;
 }
 

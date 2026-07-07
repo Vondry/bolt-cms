@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import DateField from '@/editor/Components/Date.vue';
 import flatPickr from 'vue-flatpickr-component';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 
 describe('EditorDate Component', () => {
-    let wrapper;
+    let wrapper: VueWrapper<ComponentPublicInstance> | null = null;
 
     const defaultProps = {
         value: '2026-07-06 10:00:00',
@@ -35,9 +36,7 @@ describe('EditorDate Component', () => {
         expect(hiddenInput.attributes('value')).toBe('2026-07-06 10:00:00');
         expect(hiddenInput.attributes('name')).toBe('fields[publishdate]');
         expect(hiddenInput.attributes('form')).toBe('editcontent');
-        expect(hiddenInput.attributes('data-errormessage')).toBe(
-            'Required field',
-        );
+        expect(hiddenInput.attributes('data-errormessage')).toBe('Required field');
 
         // altInput is the visible companion input created by flatpickr
         expect(wrapper.find('.editor--date.input').exists()).toBe(true);
@@ -47,14 +46,10 @@ describe('EditorDate Component', () => {
         wrapper = mount(DateField, { props: defaultProps });
         await wrapper.vm.$nextTick();
 
-        wrapper
-            .findComponent(flatPickr)
-            .vm.fp.setDate('2027-01-02 08:30:00', true);
+        wrapper.findComponent(flatPickr).vm.fp?.setDate('2027-01-02 08:30:00', true);
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.find('input[type="hidden"]').attributes('value')).toBe(
-            '2027-01-02 08:30:00',
-        );
+        expect(wrapper.find('input[type="hidden"]').attributes('value')).toBe('2027-01-02 08:30:00');
     });
 
     it('renders toggle and clear buttons with screenreader labels', () => {
@@ -78,11 +73,7 @@ describe('EditorDate Component', () => {
         const buttons = wrapper.findAll('button');
         expect(buttons[0].text()).toBe('');
         expect(buttons[1].text()).toBe('');
-        expect(
-            wrapper
-                .find('input[type="hidden"]')
-                .attributes('data-errormessage'),
-        ).toBeUndefined();
+        expect(wrapper.find('input[type="hidden"]').attributes('data-errormessage')).toBeUndefined();
     });
 
     it('disables the buttons and the picker when readonly', () => {
@@ -114,18 +105,14 @@ describe('EditorDate Component', () => {
             props: { ...defaultProps, locale: 'nl' },
         });
 
-        const weekdays = [
-            ...document.querySelectorAll('.flatpickr-weekday'),
-        ].map((el) => el.textContent.trim());
+        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map((el) => el.textContent.trim());
         expect(weekdays).toContain('ma'); // Dutch for Monday
     });
 
     it('uses the default english locale otherwise', () => {
         wrapper = mount(DateField, { props: defaultProps });
 
-        const weekdays = [
-            ...document.querySelectorAll('.flatpickr-weekday'),
-        ].map((el) => el.textContent.trim());
+        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map((el) => el.textContent.trim());
         expect(weekdays).toContain('Mon');
     });
 
@@ -135,9 +122,7 @@ describe('EditorDate Component', () => {
         });
         await wrapper.vm.$nextTick();
 
-        expect(
-            wrapper.find('.editor--date.input').attributes('required'),
-        ).toBeDefined();
+        expect(wrapper.find('.editor--date.input').attributes('required')).toBeDefined();
     });
 
     it('removes required from the visible input on update when a date is set', async () => {
@@ -170,8 +155,6 @@ describe('EditorDate Component', () => {
 
         await wrapper.setProps({ readonly: true });
 
-        expect(
-            wrapper.find('.editor--date.input').attributes('required'),
-        ).toBeUndefined();
+        expect(wrapper.find('.editor--date.input').attributes('required')).toBeUndefined();
     });
 });

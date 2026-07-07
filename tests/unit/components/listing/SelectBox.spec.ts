@@ -1,5 +1,6 @@
 import type { Pinia } from 'pinia';
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import SelectBox from '@/listing/Components/SelectBox.vue';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
@@ -7,6 +8,9 @@ import { useSelectingStore } from '@/listing/store';
 import Multiselect from 'vue-multiselect';
 
 describe('Listing SelectBox Component', () => {
+    type SelectBoxExpose = {
+        selectedAction?: { key: string } | null;
+    };
     let selectingStore: ReturnType<typeof useSelectingStore>;
     let pinia: Pinia;
 
@@ -31,7 +35,7 @@ describe('Listing SelectBox Component', () => {
         backendPrefix: '/bolt/',
     };
 
-    const mountComponent = () => {
+    const mountComponent = (): VueWrapper<ComponentPublicInstance & SelectBoxExpose> => {
         return mount(SelectBox, {
             props: defaultProps,
             global: {
@@ -40,7 +44,7 @@ describe('Listing SelectBox Component', () => {
                     Multiselect,
                 },
             },
-        });
+        }) as VueWrapper<ComponentPublicInstance & SelectBoxExpose>;
     };
 
     it('does not render when selectedCount is 0', () => {
@@ -54,9 +58,7 @@ describe('Listing SelectBox Component', () => {
         await wrapper.vm.$nextTick();
 
         expect(wrapper.find('.card').exists()).toBe(true);
-        expect(wrapper.find('.card-header').text()).toContain(
-            '1record selected',
-        );
+        expect(wrapper.find('.card-header').text()).toContain('1record selected');
     });
 
     it('renders plural text when selectedCount is > 1', async () => {
@@ -65,9 +67,7 @@ describe('Listing SelectBox Component', () => {
         selectingStore.select(2);
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.find('.card-header').text()).toContain(
-            '2records selected',
-        );
+        expect(wrapper.find('.card-header').text()).toContain('2records selected');
     });
 
     it('derives selectedCount from unique selected records', async () => {
@@ -80,9 +80,7 @@ describe('Listing SelectBox Component', () => {
 
         expect(selectingStore.selected).toEqual([1, 2]);
         expect(selectingStore.selectedCount).toBe(2);
-        expect(wrapper.find('.card-header').text()).toContain(
-            '2records selected',
-        );
+        expect(wrapper.find('.card-header').text()).toContain('2records selected');
     });
 
     it('disables submit button when no action is selected', async () => {
@@ -99,9 +97,7 @@ describe('Listing SelectBox Component', () => {
         const wrapper = mountComponent();
         await wrapper.vm.$nextTick();
 
-        const component = wrapper.vm as unknown as {
-            selectedAction: { key: string };
-        };
+        const component = wrapper.vm;
         component.selectedAction = { key: 'status/published' };
         await wrapper.vm.$nextTick();
 

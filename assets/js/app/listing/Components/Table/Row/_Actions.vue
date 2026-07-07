@@ -1,11 +1,7 @@
 <template>
     <div class="listing__row--item is-actions edit-actions">
         <div class="btn-group">
-            <a
-                class="btn btn-secondary btn-block btn-sm text-nowrap"
-                :href="record.extras.editLink"
-                data-patience="virtue"
-            >
+            <a class="btn btn-secondary btn-block btn-sm text-nowrap" :href="extras.editLink" data-patience="virtue">
                 <i class="far fa-edit me-1"></i> {{ labels.button_edit }}
             </a>
             <button
@@ -18,19 +14,14 @@
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
             <div class="edit-actions__dropdown dropdown-menu dropdown-menu-right" style="width: 320px">
-                <a
-                    v-if="record.status === 'published'"
-                    class="dropdown-item"
-                    :href="record.extras.link"
-                    target="_blank"
-                >
+                <a v-if="record.status === 'published'" class="dropdown-item" :href="extras.link" target="_blank">
                     <i class="fas fa-w fa-external-link-square-alt"></i>
                     {{ labels.view_on_site }}
                 </a>
                 <a
                     v-if="record.status !== 'published'"
                     class="dropdown-item"
-                    :href="record.extras.statusLink + '&status=published'"
+                    :href="(extras.statusLink ?? '') + '&status=published'"
                 >
                     <span class="status me-1 is-published"></span>
                     {{ labels.status_to_publish }}
@@ -38,7 +29,7 @@
                 <a
                     v-if="record.status !== 'held'"
                     class="dropdown-item"
-                    :href="record.extras.statusLink + '&status=held'"
+                    :href="(extras.statusLink ?? '') + '&status=held'"
                 >
                     <span class="status me-1 is-held"></span>
                     {{ labels.status_to_held }}
@@ -46,18 +37,18 @@
                 <a
                     v-if="record.status !== 'draft'"
                     class="dropdown-item"
-                    :href="record.extras.statusLink + '&status=draft'"
+                    :href="(extras.statusLink ?? '') + '&status=draft'"
                 >
                     <span class="status me-1 is-draft"></span>
                     {{ labels.status_to_draft }}
                 </a>
-                <a class="dropdown-item" :href="record.extras.duplicateLink">
+                <a class="dropdown-item" :href="extras.duplicateLink">
                     <i class="far fa-w fa-copy"></i>
-                    {{ labels.duplicate }} {{ record.extras.singular_name }}
+                    {{ labels.duplicate }} {{ extras.singular_name }}
                 </a>
                 <a
                     class="dropdown-item"
-                    :href="record.extras.deleteLink"
+                    :href="extras.deleteLink"
                     data-modal-title="Are you sure you wish to delete this Content?"
                     data-modal-button-deny="Cancel"
                     data-modal-button-accept="OK"
@@ -65,7 +56,7 @@
                     data-bs-target="#resourcesModal"
                 >
                     <i class="fas fa-w fa-trash"></i>
-                    {{ labels.delete }} {{ record.extras.singular_name }}
+                    {{ labels.delete }} {{ extras.singular_name }}
                 </a>
 
                 <div class="dropdown-divider"></div>
@@ -99,21 +90,26 @@
 import { computed } from 'vue';
 import { trim } from '../../../../../filters/string';
 import { datetime } from '../../../../../filters/date';
+import type { ListingRecord } from '../../../types';
 
 const props = defineProps<{
     type?: string;
-    record: Record<string, any>;
+    record: ListingRecord;
     labels: Record<string, string>;
 }>();
 
+const extras = computed(() => props.record.extras ?? {});
+
 const slug = computed(() => {
-    if (props.record.fieldValues.slug === null) {
+    const slugValue = props.record.fieldValues?.slug;
+    if (slugValue === null || slugValue === undefined) {
         return '';
     }
-    if (typeof props.record.fieldValues.slug === 'string') {
-        return props.record.fieldValues.slug;
+    if (typeof slugValue === 'string') {
+        return slugValue;
     }
     // if slug has different locales, return the 0st one
-    return props.record.fieldValues.slug[Object.keys(props.record.fieldValues.slug)[0]];
+    const firstLocale = Object.keys(slugValue)[0];
+    return firstLocale ? slugValue[firstLocale] : '';
 });
 </script>

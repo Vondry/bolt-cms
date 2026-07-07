@@ -54,17 +54,13 @@ describe('SidebarToggler Component', () => {
         generalStore.slimSidebar = true;
         await wrapper.vm.$nextTick();
 
-        expect(
-            document.querySelector('.admin')?.classList.contains('is-slim'),
-        ).toBe(true);
+        expect(document.querySelector('.admin')?.classList.contains('is-slim')).toBe(true);
         expect(localStorage.getItem('slim-sidebar')).toBe('true');
 
         generalStore.slimSidebar = false;
         await wrapper.vm.$nextTick();
 
-        expect(
-            document.querySelector('.admin')?.classList.contains('is-slim'),
-        ).toBe(false);
+        expect(document.querySelector('.admin')?.classList.contains('is-slim')).toBe(false);
         expect(localStorage.getItem('slim-sidebar')).toBe('false');
     });
 
@@ -73,9 +69,7 @@ describe('SidebarToggler Component', () => {
 
         mountComponent();
 
-        expect(
-            document.querySelector('.admin')?.classList.contains('is-slim'),
-        ).toBe(true);
+        expect(document.querySelector('.admin')?.classList.contains('is-slim')).toBe(true);
         expect(localStorage.getItem('slim-sidebar')).toBe('true');
     });
 });

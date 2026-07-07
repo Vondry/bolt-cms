@@ -10,10 +10,10 @@
                 :directory="directory"
                 :filelist="filelist"
                 :csrf-token="csrfToken"
-                :labels="labels"
+                :labels="labelsValue"
                 :in-filelist="true"
                 :name="fieldName(index)"
-                :extensions="extensions"
+                :extensions="extensionsValue"
                 :is-first-in-filelist="isFirstInFilelist(index)"
                 :is-last-in-filelist="isLastInFilelist(index)"
                 :readonly="readonly"
@@ -28,7 +28,7 @@
 
         <button class="btn btn-tertiary" type="button" :disabled="!allowMore" @click="addFile">
             <i class="fas fa-fw fa-plus"></i>
-            {{ labels.add_new_file }}
+            {{ labelsValue.add_new_file }}
         </button>
     </div>
 </template>
@@ -36,9 +36,25 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import EditorFile from './File.vue';
+import type { FieldMovePayload } from '../types';
+
+type FileField = {
+    id: number;
+    filename?: string;
+    thumbnail?: string;
+    title?: string;
+    media?: string;
+    inFilelist?: boolean;
+    directory?: string;
+    name?: string;
+    filelist?: string;
+    csrfToken?: string;
+    labels?: Record<string, string>;
+    extensions?: string[];
+};
 
 const props = defineProps<{
-    files?: Record<string, any>[];
+    files?: Omit<FileField, 'id'>[];
     directory?: string;
     name?: string;
     filelist?: string;
@@ -51,7 +67,9 @@ const props = defineProps<{
 }>();
 
 const counter = ref(0);
-const containerFiles = ref<any[]>([]);
+const containerFiles = ref<FileField[]>([]);
+const labelsValue = computed(() => props.labels ?? {});
+const extensionsValue = computed(() => props.extensions ?? []);
 
 const initialFiles = props.files || [];
 initialFiles.forEach((file, index) => {
@@ -74,14 +92,14 @@ function isLastInFilelist(index: number) {
     return index === containerFiles.value.length - 1;
 }
 
-function getFieldNumberFromElement(elem: Record<string, any>) {
+function getFieldNumberFromElement(elem: FieldMovePayload) {
     // get the last number because in collections, there are multiple.
     const matches = [...elem.fieldName.matchAll(/\d+/g)];
     const lastMatch = matches.splice(-1).pop();
-    return parseInt(lastMatch![0]);
+    return lastMatch ? parseInt(lastMatch[0]) : 0;
 }
 
-function onMoveFileDown(elem: Record<string, any>) {
+function onMoveFileDown(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
 
     if (fieldNumber < containerFiles.value.length - 1) {
@@ -92,7 +110,7 @@ function onMoveFileDown(elem: Record<string, any>) {
     }
 }
 
-function onMoveFileUp(elem: Record<string, any>) {
+function onMoveFileUp(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
 
     if (fieldNumber > 0) {
@@ -103,7 +121,7 @@ function onMoveFileUp(elem: Record<string, any>) {
     }
 }
 
-function onRemoveFile(elem: Record<string, any>) {
+function onRemoveFile(elem: FieldMovePayload) {
     const fieldNumber = getFieldNumberFromElement(elem);
     containerFiles.value.splice(fieldNumber, 1);
 }

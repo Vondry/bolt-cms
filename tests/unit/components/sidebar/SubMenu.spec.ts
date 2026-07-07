@@ -32,7 +32,7 @@ describe('SubMenu Component', () => {
         const wrapper = mount(SubMenu, { props: defaultProps });
 
         const actionLinks = wrapper.findAll('.link--actions a');
-        expect(actionLinks.length).toBe(2);
+        expect(actionLinks).toHaveLength(2);
 
         // New Link
         const newLink = actionLinks[0];
@@ -54,7 +54,7 @@ describe('SubMenu Component', () => {
         const wrapper = mount(SubMenu, { props });
 
         const actionLinks = wrapper.findAll('.link--actions a');
-        expect(actionLinks.length).toBe(1);
+        expect(actionLinks).toHaveLength(1);
         expect(actionLinks[0].text()).toContain('View Posts');
     });
 
@@ -62,7 +62,7 @@ describe('SubMenu Component', () => {
         const wrapper = mount(SubMenu, { props: defaultProps });
 
         const subItems = wrapper.findAll('li:not(.link--actions) a');
-        expect(subItems.length).toBe(2);
+        expect(subItems).toHaveLength(2);
 
         // Named Item
         const item1 = subItems[0];
@@ -84,6 +84,6 @@ describe('SubMenu Component', () => {
         const wrapper = mount(SubMenu, { props });
 
         const subItems = wrapper.findAll('li:not(.link--actions) a');
-        expect(subItems.length).toBe(0);
+        expect(subItems).toHaveLength(0);
     });
 });

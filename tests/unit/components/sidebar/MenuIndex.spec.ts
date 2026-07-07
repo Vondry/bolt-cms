@@ -54,7 +54,7 @@ describe('Sidebar Menu Component', () => {
         const wrapper = mountComponent();
 
         const separators = wrapper.findAll('.admin__sidebar--separator');
-        expect(separators.length).toBe(1);
+        expect(separators).toHaveLength(1);
         expect(separators[0].text()).toBe('Separator 1');
     });
 
@@ -75,16 +75,10 @@ describe('Sidebar Menu Component', () => {
         const itemSubmenu = links[1];
         expect(itemSubmenu.attributes('href')).toBe('/item-with-submenu');
         expect(itemSubmenu.classes()).toContain('has-menu');
-        expect(itemSubmenu.find('.link--text').text()).toBe(
-            'Item with Submenu',
-        );
-        expect(itemSubmenu.find('.link--icon').classes()).toContain(
-            'fa-icon-2',
-        );
+        expect(itemSubmenu.find('.link--text').text()).toBe('Item with Submenu');
+        expect(itemSubmenu.find('.link--icon').classes()).toContain('fa-icon-2');
         expect(itemSubmenu.find('.link--caret').exists()).toBe(true);
-        expect(itemSubmenu.findComponent({ name: 'sub-menu' }).exists()).toBe(
-            true,
-        );
+        expect(itemSubmenu.findComponent({ name: 'sub-menu' }).exists()).toBe(true);
     });
 
     it('renders singleton with empty submenu correctly', () => {
@@ -93,9 +87,7 @@ describe('Sidebar Menu Component', () => {
 
         const singletonEmpty = links[2];
         expect(singletonEmpty.attributes('href')).toBe('/singleton-new');
-        expect(singletonEmpty.find('.link--text').text()).toBe(
-            'Singleton Empty Submenu',
-        );
+        expect(singletonEmpty.find('.link--text').text()).toBe('Singleton Empty Submenu');
     });
 
     it('renders singleton with submenu correctly', () => {
@@ -104,8 +96,6 @@ describe('Sidebar Menu Component', () => {
 
         const singletonWithSub = links[3];
         expect(singletonWithSub.attributes('href')).toBe('/singleton-edit');
-        expect(singletonWithSub.find('.link--text').text()).toBe(
-            'Singleton With Submenu',
-        );
+        expect(singletonWithSub.find('.link--text').text()).toBe('Singleton With Submenu');
     });
 });

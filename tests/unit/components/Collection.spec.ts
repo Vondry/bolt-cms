@@ -1,4 +1,5 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import $ from 'jquery';
 import Collection from '@/editor/Components/Collection.vue';
@@ -12,7 +13,11 @@ const labels = {
 };
 
 describe('EditorCollection', () => {
-    let wrapper;
+    type CollectionExpose = {
+        elements: Array<{ label: string; icon: string; hash: string; buttons: string; content: string }>;
+        compile: (element: string) => { template: string } | undefined;
+    };
+    let wrapper: VueWrapper<ComponentPublicInstance & CollectionExpose>;
 
     const templates = [
         {
@@ -23,23 +28,22 @@ describe('EditorCollection', () => {
                 '<button type="button" class="action-move-up-collection-item">Up</button>' +
                 '<button type="button" class="action-move-down-collection-item">Down</button>' +
                 '<button type="button" class="action-remove-collection-item">Remove</button>',
-            content:
-                '<input name="fields[blocks][templatehash][text]" type="text" value="" />',
+            content: '<input name="fields[blocks][templatehash][text]" type="text" value="" />',
         },
         {
             label: 'Image',
             icon: 'fa-image',
             hash: 'templatehash2',
             buttons: '<button type="button">Move</button>',
-            content:
-                '<input name="fields[blocks][templatehash2][image]" type="text" value="" />',
+            content: '<input name="fields[blocks][templatehash2][image]" type="text" value="" />',
         },
     ];
 
     beforeEach(() => {
-        (window as unknown as { $: typeof $ }).$ = $;
-        $.fn.ready = function (fn) {
-            fn();
+        (window as Window & typeof globalThis & { $: typeof $ }).$ = $;
+        $.fn.ready = function (this: JQuery<HTMLElement>, fn: ($: JQueryStatic) => void) {
+            fn($);
+            return this;
         };
         // Mock modal behavior
         document.body.innerHTML = `
@@ -49,7 +53,7 @@ describe('EditorCollection', () => {
     });
 
     afterEach(() => {
-        if (wrapper) wrapper.unmount();
+        wrapper.unmount();
         document.body.innerHTML = '';
         $(document).off(); // clear jquery events
     });
@@ -65,16 +69,14 @@ describe('EditorCollection', () => {
                         icon: 'fa-font',
                         hash: 'hash1',
                         buttons: templates[0].buttons,
-                        content:
-                            '<input name="fields[blocks][hash1][text]" type="text" value="hello" />',
+                        content: '<input name="fields[blocks][hash1][text]" type="text" value="hello" />',
                     },
                     {
                         label: 'Image',
                         icon: 'fa-image',
                         hash: 'hash2',
                         buttons: templates[1].buttons,
-                        content:
-                            '<textarea name="fields[blocks][hash2][image]">world</textarea>',
+                        content: '<textarea name="fields[blocks][hash2][image]">world</textarea>',
                     },
                 ],
                 labels,
@@ -94,27 +96,18 @@ describe('EditorCollection', () => {
         // Wait for DOM
         await wrapper.vm.$nextTick();
 
-        // Trigger document ready for jQuery
-        $.ready();
-
         const collection = $('#fields_blocks');
 
         // Test expand/collapse all
         collection.find('.collection-collapse-all').trigger('click');
-        expect(
-            collection.find('.collection-item').first().hasClass('collapsed'),
-        ).toBe(true);
+        expect(collection.find('.collection-item').first().hasClass('collapsed')).toBe(true);
 
         collection.find('.collection-expand-all').trigger('click');
-        expect(
-            collection.find('.collection-item').first().hasClass('collapsed'),
-        ).toBe(false);
+        expect(collection.find('.collection-item').first().hasClass('collapsed')).toBe(false);
 
         // Test item summary click (toggle collapsed)
         collection.find('.collection-item .summary').first().trigger('click');
-        expect(
-            collection.find('.collection-item').first().hasClass('collapsed'),
-        ).toBe(true);
+        expect(collection.find('.collection-item').first().hasClass('collapsed')).toBe(true);
 
         // Test title update via keyup and change natively via Vue wrappers (to trigger the delegated jQuery event)
         const firstInput = wrapper.find('input[type="text"]');
@@ -132,25 +125,13 @@ describe('EditorCollection', () => {
         collection.find('.collection-item').last().trigger('change');
 
         // Test Move Down
-        collection
-            .find('.collection-item')
-            .first()
-            .find('.action-move-down-collection-item')
-            .trigger('click');
+        collection.find('.collection-item').first().find('.action-move-down-collection-item').trigger('click');
 
         // Test Move Up
-        collection
-            .find('.collection-item')
-            .last()
-            .find('.action-move-up-collection-item')
-            .trigger('click');
+        collection.find('.collection-item').last().find('.action-move-up-collection-item').trigger('click');
 
         // Test Remove
-        collection
-            .find('.collection-item')
-            .first()
-            .find('.action-remove-collection-item')
-            .trigger('click');
+        collection.find('.collection-item').first().find('.action-remove-collection-item').trigger('click');
         $('#modalButtonAccept').trigger('click');
 
         // Add item using click
@@ -189,8 +170,7 @@ describe('EditorCollection', () => {
                         icon: 'fa-font',
                         hash: 'hash1',
                         buttons: templates[0].buttons,
-                        content:
-                            '<input name="fields[blocks][hash1][text]" type="text" value="hello" />',
+                        content: '<input name="fields[blocks][hash1][text]" type="text" value="hello" />',
                     },
                 ],
                 labels,

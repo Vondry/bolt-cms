@@ -9,7 +9,7 @@
             <div class="col-12 col-md-3 order-md-2">
                 <div class="editor__image--preview">
                     <a
-                        v-if="thumbnailImage !== null && thumbnailImage !== ''"
+                        v-if="thumbnailImage"
                         class="editor__image--preview-image"
                         :href="previewImage"
                         :style="`background-image: url('${thumbnailImage}')`"
@@ -186,7 +186,7 @@
             tabindex="-1"
             type="file"
             :accept="acceptedExtensions"
-            @change="uploadFile(($event.target as HTMLInputElement).files![0])"
+            @change="uploadSelectedFile"
         />
     </div>
 </template>
@@ -196,9 +196,11 @@ import { ref, computed, reactive, watch, useTemplateRef } from 'vue';
 import noScroll from 'no-scroll';
 import baguetteBox from 'baguettebox.js';
 import Axios from 'axios';
+import type { AxiosError, AxiosProgressEvent } from 'axios';
 import { renable } from '../../patience-is-a-virtue';
 import { resetModalContent } from '../../modal';
 import { createServerFileBrowser, type ServerFile } from '../utils/serverFileBrowser';
+import { getUploadErrorMessage, type UploadErrorResponse } from '../utils/upload';
 
 const props = defineProps<{
     filename?: string;
@@ -224,7 +226,7 @@ const props = defineProps<{
     pattern?: string | boolean;
     placeholder?: string | boolean;
     extraFields?: Record<string, { label: string; placeholder?: string }>;
-    extraData?: string[] | Record<string, string>;
+    extraData?: Record<string, string | number | boolean | Record<string, string> | string[] | undefined> | string[];
 }>();
 
 const emit = defineEmits<{
@@ -236,10 +238,10 @@ const emit = defineEmits<{
 const isDragging = ref(false);
 const dragCount = ref(0);
 const progress = ref(0);
-const filenameData = ref<string | null>(props.filename ?? null);
+const filenameData = ref(props.filename ?? '');
 const altData = ref(props.alt);
-const extraDataValues = reactive(
-    Array.isArray(props.extraData) ? [...props.extraData] : { ...(props.extraData || {}) },
+const extraDataValues = reactive<Record<string, string>>(
+    Object.fromEntries(Object.entries(props.extraData ?? {}).map(([key, value]) => [key, String(value ?? '')])),
 );
 
 const selectFile = useTemplateRef<HTMLInputElement>('selectFile');
@@ -261,7 +263,7 @@ const thumbs = computed(() =>
               preview: `/thumbs/1000×1000/` + filenameData.value,
               thumbnail: `/thumbs/400×300/` + filenameData.value,
           }
-        : { preview: null, thumbnail: null },
+        : { preview: undefined, thumbnail: undefined },
 );
 const previewImage = computed(() => thumbs.value.preview);
 const thumbnailImage = computed(() => thumbs.value.thumbnail);
@@ -275,11 +277,11 @@ const { selectServerFile } = createServerFileBrowser({
     onSelect: (selectedImage) => {
         filenameData.value = selectedImage;
     },
-    onOpenError: (err: any) => {
-        window.alert(err.response.data + '<br>Image did not upload.');
+    onOpenError: (err) => {
+        window.alert(err.message + '<br>Image did not upload.');
     },
-    onNavigateError: (err: any) => {
-        window.alert(err.response.data + '<br>Image did not upload.');
+    onNavigateError: (err) => {
+        window.alert(err.message + '<br>Image did not upload.');
     },
 });
 
@@ -309,24 +311,29 @@ function onMoveImageUp() {
 }
 
 function onRemoveImage() {
-    filenameData.value = null;
+    filenameData.value = '';
     // only reset altData if alt should be displayed.
     if (props.includeAlt) altData.value = '';
     emit('remove', { fieldName: fieldName.value });
 }
 
 function selectUploadFile() {
-    (selectFile.value as HTMLInputElement).click();
+    selectFile.value?.click();
 }
 
 function generateModalContent(inputOptions: ServerFile[]) {
+    const firstOption = inputOptions[0];
+    if (!firstOption) {
+        return '';
+    }
+
     let filePath = '';
-    let folderPath = inputOptions[0].value;
-    let baseAsyncPath = inputOptions[0].base_url_path;
+    let folderPath = firstOption.value;
+    let baseAsyncPath = firstOption.base_url_path ?? '';
     let modalContent = '<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2">';
     // If we are deep in the directory, add an arrow to navigate back to previous folder
     if (folderPath.includes('/')) {
-        let pathChunks = inputOptions[0].value.split('/');
+        let pathChunks = firstOption.value.split('/');
         pathChunks.pop();
         pathChunks.pop();
         filePath = pathChunks.join('/');
@@ -422,15 +429,31 @@ function onDrop(e: DragEvent) {
     e.stopPropagation();
     isDragging.value = false;
     dragCount.value = 0;
-    const image = e.dataTransfer.files[0];
+    const image = e.dataTransfer?.files[0];
+    if (!image) {
+        return;
+    }
+
     return uploadFile(image);
 }
 
+function uploadSelectedFile(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+        uploadFile(file);
+    }
+}
+
 function uploadFile(file: File) {
+    if (!props.directory) {
+        return;
+    }
+
     const fd = new FormData();
     const config = {
-        onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+            const total = progressEvent.total ?? progressEvent.loaded;
+            const percentCompleted = total > 0 ? Math.round((progressEvent.loaded * 100) / total) : 0;
             progress.value = percentCompleted;
         },
         headers: {
@@ -438,23 +461,30 @@ function uploadFile(file: File) {
         },
     };
     fd.append('image', file);
-    fd.append('_csrf_token', token.value);
-    Axios.post(props.directory, fd, config)
+    fd.append('_csrf_token', token.value ?? '');
+    Axios.post<string>(props.directory, fd, config)
         .then((res) => {
             filenameData.value = res.data;
             progress.value = 0;
         })
-        .catch((err) => {
-            window.alert(err.response.data.error.message);
-            console.warn(err.response.data.error.message);
+        .catch((err: AxiosError<UploadErrorResponse>) => {
+            const message = getUploadErrorMessage(err);
+            window.alert(message);
+            console.warn(message);
             progress.value = 0;
         });
 }
 
 function uploadFileFromUrl(event: Event) {
+    const uploadUrl = props.directoryurl;
+    if (!uploadUrl) {
+        return;
+    }
+
     const config = {
-        onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+            const total = progressEvent.total ?? progressEvent.loaded;
+            const percentCompleted = total > 0 ? Math.round((progressEvent.loaded * 100) / total) : 0;
             progress.value = percentCompleted;
         },
         headers: {
@@ -466,10 +496,14 @@ function uploadFileFromUrl(event: Event) {
     const saveButton = document.getElementById('modalButtonAccept');
     const button = event.target as HTMLElement;
     const title = button.getAttribute('data-modal-title');
-    const modalTitle = resourcesModal.querySelector('.modal-title');
-    const modalBody = resourcesModal.querySelector('.modal-body');
+    const modalTitle = resourcesModal?.querySelector<HTMLElement>('.modal-title');
+    const modalBody = resourcesModal?.querySelector<HTMLElement>('.modal-body');
+    if (!resourcesModal || !saveButton || !modalTitle || !modalBody) {
+        return;
+    }
+
     const modalBodyContent = generateUploadFromURLModalContent();
-    modalTitle.innerHTML = title;
+    modalTitle.innerHTML = title ?? '';
 
     setTimeout(() => {
         modalBody.innerHTML = modalBodyContent;
@@ -482,15 +516,16 @@ function uploadFileFromUrl(event: Event) {
             if (imageURL) {
                 const fd = new FormData();
                 fd.append('url', imageURL);
-                fd.append('_csrf_token', token.value);
-                Axios.post(props.directoryurl, fd, config)
+                fd.append('_csrf_token', token.value ?? '');
+                Axios.post<string>(uploadUrl, fd, config)
                     .then((res) => {
                         filenameData.value = res.data;
                         progress.value = 0;
                     })
-                    .catch((err) => {
-                        window.alert(err.response.data.error.message);
-                        console.warn(err.response.data.error.message);
+                    .catch((err: AxiosError<UploadErrorResponse>) => {
+                        const message = getUploadErrorMessage(err);
+                        window.alert(message);
+                        console.warn(message);
                         progress.value = 0;
                     });
             }

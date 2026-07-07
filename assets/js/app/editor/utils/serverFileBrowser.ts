@@ -17,9 +17,30 @@ type BrowserOptions = {
     modalTitlePrefix: string;
     generateModalContent: (inputOptions: ServerFile[]) => string;
     onSelect: (selectedFile: string) => void;
-    onOpenError: (error: unknown) => void;
-    onNavigateError: (error: unknown) => void;
+    onOpenError: (error: BrowserError) => void;
+    onNavigateError: (error: BrowserError) => void;
 };
+
+type BrowserErrorResponse = {
+    data?: string | { error?: { message?: string } };
+};
+
+type BrowserErrorInput =
+    | Error
+    | {
+          message?: string;
+          response?: BrowserErrorResponse;
+      };
+
+class BrowserError extends Error {
+    response?: BrowserErrorResponse;
+
+    constructor(message: string, response?: BrowserErrorResponse) {
+        super(message);
+        this.name = 'BrowserError';
+        this.response = response;
+    }
+}
 
 export function createServerFileBrowser(options: BrowserOptions) {
     let currentFilelist = options.initialFilelist;
@@ -44,42 +65,86 @@ export function createServerFileBrowser(options: BrowserOptions) {
     }
 
     function loadModal(filelist: string | undefined, mode: 'open' | 'navigate', event?: Event) {
-        return Axios.get(filelist)
+        if (!filelist) {
+            return Promise.reject(new Error('Missing server file list URL'));
+        }
+
+        return Axios.get<ServerFile[]>(filelist)
             .then((res) => {
                 const inputOptions = filterServerFiles(res.data);
                 if (mode === 'open') {
-                    openModal(event as Event, inputOptions);
+                    if (event) {
+                        openModal(event, inputOptions);
+                    }
                 } else {
                     refreshModal(inputOptions);
                 }
             })
             .catch((err) => {
+                const error = normalizeError(err as BrowserErrorInput);
                 if (mode === 'open') {
-                    options.onOpenError(err);
+                    options.onOpenError(error);
                 } else {
-                    options.onNavigateError(err);
+                    options.onNavigateError(error);
                 }
                 renable();
             });
     }
 
-    function getModalParts() {
-        const resourcesModal = document.getElementById('resourcesModal');
-        const bootstrapResourcesModal = document.querySelector('#resourcesModal');
-        const resourcesModalObject = Modal.getOrCreateInstance(bootstrapResourcesModal);
+    function normalizeError(error: BrowserErrorInput): BrowserError {
+        if (error instanceof BrowserError) {
+            return error;
+        }
+
+        // Axios errors are `Error` instances that also carry a `.response`; keep it.
+        const response = (error as { response?: BrowserErrorResponse }).response;
+
+        if (error instanceof Error) {
+            return new BrowserError(error.message, response);
+        }
+
+        const responseData = response?.data;
+        const message =
+            typeof responseData === 'string'
+                ? responseData
+                : (responseData?.error?.message ?? error.message ?? String(error));
+        return new BrowserError(message, response);
+    }
+
+    function requireElement<T extends Element>(selector: string, root: Document | Element = document): T {
+        const element = root.querySelector<T>(selector);
+        if (!element) {
+            throw new Error(`Missing required element: ${selector}`);
+        }
+        return element;
+    }
+
+    type ModalParts = {
+        resourcesModal: HTMLElement;
+        resourcesModalObject: Modal;
+        modalDialog: HTMLElement;
+        modalTitle: HTMLElement;
+        modalBody: HTMLElement;
+        modalFooter: Element | null;
+    };
+
+    function getModalParts(): ModalParts {
+        const resourcesModal = requireElement<HTMLElement>('#resourcesModal');
+        const resourcesModalObject = Modal.getOrCreateInstance(resourcesModal);
 
         return {
             resourcesModal,
             resourcesModalObject,
-            modalDialog: resourcesModal.querySelector('.modal-dialog'),
-            modalTitle: resourcesModal.querySelector('.modal-title'),
-            modalBody: resourcesModal.querySelector('.modal-body'),
+            modalDialog: requireElement<HTMLElement>('.modal-dialog', resourcesModal),
+            modalTitle: requireElement<HTMLElement>('.modal-title', resourcesModal),
+            modalBody: requireElement<HTMLElement>('.modal-body', resourcesModal),
             modalFooter: resourcesModal.querySelector('.modal-footer'),
         };
     }
 
     function openModal(event: Event, inputOptions: ServerFile[]) {
-        const { resourcesModal, modalDialog, modalTitle, modalBody, modalFooter } = getModalParts();
+        const parts = getModalParts();
+        const { resourcesModal, modalDialog, modalTitle, modalBody, modalFooter } = parts;
         const button = (event.currentTarget || event.target) as HTMLElement;
         const dialogClass = button.getAttribute('data-modal-dialog-class');
 
@@ -91,7 +156,7 @@ export function createServerFileBrowser(options: BrowserOptions) {
         modalBody.innerHTML = options.generateModalContent(inputOptions);
         modalFooter?.remove();
 
-        bindModalInteractions();
+        bindModalInteractions(parts);
 
         resourcesModal.addEventListener(
             'hidden.bs.modal',
@@ -113,7 +178,12 @@ export function createServerFileBrowser(options: BrowserOptions) {
     }
 
     function refreshModal(inputOptions: ServerFile[]) {
-        const { modalTitle, modalBody } = getModalParts();
+        if (inputOptions.length === 0) {
+            return;
+        }
+
+        const parts = getModalParts();
+        const { modalTitle, modalBody } = parts;
         const folderPathChunks = inputOptions[0].value.split('/');
         folderPathChunks.pop();
         const folderPath = folderPathChunks.join('/');
@@ -121,12 +191,10 @@ export function createServerFileBrowser(options: BrowserOptions) {
         modalTitle.innerHTML = `${options.modalTitlePrefix}: <i class="fas fa-solid fa-folder-tree"></i>${folderPath}`;
         modalBody.innerHTML = options.generateModalContent(inputOptions);
 
-        bindModalInteractions();
+        bindModalInteractions(parts);
     }
 
-    function bindModalInteractions() {
-        const { resourcesModal, resourcesModalObject, modalBody } = getModalParts();
-
+    function bindModalInteractions({ resourcesModal, resourcesModalObject, modalBody }: ModalParts) {
         resourcesModal.querySelectorAll('.directory').forEach((link) => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
