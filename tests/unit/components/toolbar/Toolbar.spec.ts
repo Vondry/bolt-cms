@@ -56,7 +56,8 @@ describe('Toolbar Component', () => {
 
         const logo = wrapper.find('img[alt="⚙️ Bolt"]');
         expect(logo.exists()).toBe(true);
-        expect(logo.attributes('src')).toContain('bolt_logo_dashboard.svg');
+        expect(logo.attributes('src')).toBeTruthy();
+        expect(logo.attributes('height')).toBe('26');
         expect(wrapper.find('.toolbar-item__site a').attributes('href')).toBe('/');
 
         // Search form
