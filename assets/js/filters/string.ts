@@ -322,12 +322,16 @@ export function slugify(input?: string | number | null) {
         string = opt.lowercase ? string.toLowerCase() : string;
         return string.replace(/[^\w-]+/g, '');
     }
+
+    return undefined;
 }
 
 export function strip(string?: string | null) {
     if (string) {
         return string.replace(/(^")|("$)/g, '');
     }
+
+    return undefined;
 }
 
 export function raw(string?: string | null) {
@@ -336,10 +340,14 @@ export function raw(string?: string | null) {
         node.innerHTML = string;
         return node.value;
     }
+
+    return undefined;
 }
 
 export function uppercase(string?: string | null) {
     if (string) return string.toUpperCase();
+
+    return undefined;
 }
 
 export function trim(string: string, length = 50) {
