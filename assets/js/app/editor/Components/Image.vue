@@ -256,7 +256,7 @@ const altData = ref(props.alt);
 // declared extra-field keys, so base keys never leak into the submitted values.
 const extraDataLookup: Record<string, unknown> = Object.fromEntries(Object.entries(props.extraData ?? {}));
 const extraDataValues = reactive<Record<string, string>>(
-    Object.fromEntries(Object.keys(props.extraFields ?? {}).map((key) => [key, String(extraDataLookup[key] ?? '')])),
+    Object.fromEntries(Object.keys(props.extraFields ?? {}).map(key => [key, String(extraDataLookup[key] ?? '')])),
 );
 
 const selectFile = useTemplateRef<HTMLInputElement>('selectFile');
@@ -264,7 +264,7 @@ const selectFile = useTemplateRef<HTMLInputElement>('selectFile');
 const fieldId = computed(() => props.id);
 const fieldName = computed(() => props.name + '[]');
 const token = computed(() => props.csrfToken);
-const acceptedExtensions = computed(() => props.extensions.map((ext) => '.' + ext).join());
+const acceptedExtensions = computed(() => props.extensions.map(ext => '.' + ext).join());
 const getPlaceholder = computed(() => {
     if (typeof props.placeholder === 'string' && props.placeholder) {
         return props.placeholder;
@@ -289,13 +289,13 @@ const { selectServerFile } = createServerFileBrowser({
     labels: props.labels,
     modalTitlePrefix: 'Select an image',
     generateModalContent,
-    onSelect: (selectedImage) => {
+    onSelect: selectedImage => {
         filenameData.value = selectedImage;
     },
-    onOpenError: (err) => {
+    onOpenError: err => {
         window.alert(err.message + '<br>Image did not upload.');
     },
-    onNavigateError: (err) => {
+    onNavigateError: err => {
         window.alert(err.message + '<br>Image did not upload.');
     },
 });
@@ -478,7 +478,7 @@ function uploadFile(file: File) {
     fd.append('image', file);
     fd.append('_csrf_token', token.value ?? '');
     Axios.post<string>(props.directory, fd, config)
-        .then((res) => {
+        .then(res => {
             filenameData.value = res.data;
             progress.value = 0;
         })
@@ -533,7 +533,7 @@ function uploadFileFromUrl(event: Event) {
                 fd.append('url', imageURL);
                 fd.append('_csrf_token', token.value ?? '');
                 Axios.post<string>(uploadUrl, fd, config)
-                    .then((res) => {
+                    .then(res => {
                         filenameData.value = res.data;
                         progress.value = 0;
                     })

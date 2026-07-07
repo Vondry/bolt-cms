@@ -277,7 +277,7 @@ describe('EditorImage Component', () => {
 
         const [moveUp, moveDown] = wrapper
             .findAll('button')
-            .filter((b) => b.text().includes('Move up') || b.text().includes('Move down'));
+            .filter(b => b.text().includes('Move up') || b.text().includes('Move down'));
 
         expect(moveUp).toBeDefined();
         expect(moveDown).toBeDefined();
@@ -293,7 +293,7 @@ describe('EditorImage Component', () => {
     it('clears the image and alt and emits remove when removing', async () => {
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const removeButton = wrapper.findAll('button').find((b) => b.text().includes('Remove'));
+        const removeButton = wrapper.findAll('button').find(b => b.text().includes('Remove'));
         expect(removeButton).toBeDefined();
         await removeButton?.trigger('click');
 
@@ -309,7 +309,7 @@ describe('EditorImage Component', () => {
             props: { ...defaultProps, includeAlt: false },
         });
 
-        const removeButton = wrapper.findAll('button').find((b) => b.text().includes('Remove'));
+        const removeButton = wrapper.findAll('button').find(b => b.text().includes('Remove'));
         expect(removeButton).toBeDefined();
         await removeButton?.trigger('click');
 
@@ -320,7 +320,7 @@ describe('EditorImage Component', () => {
         wrapper = mount(ImageField, { props: defaultProps });
         const clickSpy = vi.spyOn(uploadInput().element as HTMLInputElement, 'click');
 
-        const uploadButton = wrapper.findAll('button').find((b) => b.text().includes('Upload'));
+        const uploadButton = wrapper.findAll('button').find(b => b.text().includes('Upload'));
         expect(uploadButton).toBeDefined();
         await uploadButton?.trigger('click');
 
@@ -348,7 +348,7 @@ describe('EditorImage Component', () => {
         let resolvePost: (value: { data: string }) => void = () => {};
         (Axios.post as import('vitest').Mock).mockImplementation(
             () =>
-                new Promise((resolve) => {
+                new Promise(resolve => {
                     resolvePost = resolve;
                 }),
         );
@@ -580,7 +580,7 @@ describe('EditorImage Component', () => {
         (Axios.post as import('vitest').Mock).mockResolvedValue({ data: 'remote.jpg' });
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        const fromUrlButton = wrapper.findAll('button').find(b => b.text().includes('From URL'));
         expect(fromUrlButton).toBeDefined();
         await fromUrlButton?.trigger('click');
 
@@ -620,7 +620,7 @@ describe('EditorImage Component', () => {
         vi.useFakeTimers();
         wrapper = mount(ImageField, { props: defaultProps });
 
-        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        const fromUrlButton = wrapper.findAll('button').find(b => b.text().includes('From URL'));
         expect(fromUrlButton).toBeDefined();
         await fromUrlButton?.trigger('click');
         vi.advanceTimersByTime(5);
@@ -639,7 +639,7 @@ describe('EditorImage Component', () => {
         });
 
         wrapper = mount(ImageField, { props: defaultProps });
-        const fromUrlButton = wrapper.findAll('button').find((b) => b.text().includes('From URL'));
+        const fromUrlButton = wrapper.findAll('button').find(b => b.text().includes('From URL'));
         expect(fromUrlButton).toBeDefined();
         await fromUrlButton?.trigger('click');
         vi.advanceTimersByTime(5);

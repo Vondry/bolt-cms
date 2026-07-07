@@ -55,7 +55,7 @@ describe('Actions Component', () => {
         const wrapper = mountComponent();
 
         const dropdownItems = wrapper.findAll('.dropdown-item');
-        const hrefs = dropdownItems.map((item) => item.attributes('href'));
+        const hrefs = dropdownItems.map(item => item.attributes('href'));
 
         expect(hrefs).toContain('/status/1?dummy=1&status=published');
         expect(hrefs).toContain('/status/1?dummy=1&status=held');
@@ -72,7 +72,7 @@ describe('Actions Component', () => {
         });
 
         const dropdownItems = wrapper.findAll('.dropdown-item');
-        const hrefs = dropdownItems.map((item) => item.attributes('href'));
+        const hrefs = dropdownItems.map(item => item.attributes('href'));
 
         expect(hrefs).toContain('/view/1');
         expect(hrefs).toContain('/status/1?dummy=1&status=held');
@@ -89,7 +89,7 @@ describe('Actions Component', () => {
         });
 
         const dropdownItems = wrapper.findAll('.dropdown-item');
-        const hrefs = dropdownItems.map((item) => item.attributes('href'));
+        const hrefs = dropdownItems.map(item => item.attributes('href'));
 
         expect(hrefs).toContain('/status/1?dummy=1&status=published');
         expect(hrefs).toContain('/status/1?dummy=1&status=draft');

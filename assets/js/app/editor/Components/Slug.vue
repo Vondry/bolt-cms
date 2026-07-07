@@ -135,7 +135,7 @@ function generateSlug() {
 
 function getGeneratedSourceValue(separator = '') {
     return generateSourceFields.value
-        .map((element) => {
+        .map(element => {
             const el = document.querySelector(`input[name='fields[${element}]']`) as HTMLInputElement | null;
             return el?.value ?? '';
         })
@@ -146,7 +146,7 @@ function parseGenerateSourceFields() {
     if (!props.generate) return [];
     return props.generate
         .split(',')
-        .map((element) => element.trim())
+        .map(element => element.trim())
         .filter(Boolean);
 }
 

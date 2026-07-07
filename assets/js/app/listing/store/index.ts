@@ -36,7 +36,7 @@ export const useSelectingStore = defineStore('selecting', {
         selected: [],
     }),
     getters: {
-        selectedCount: (state) => state.selected.length,
+        selectedCount: state => state.selected.length,
     },
     actions: {
         select(id: number) {

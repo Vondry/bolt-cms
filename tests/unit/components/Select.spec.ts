@@ -231,7 +231,7 @@ describe('EditorSelect', () => {
 
         expect(wrapper.vm.isLoading).toBe(true);
         // Wait for ajax promise
-        await new Promise((r) => setTimeout(r, 0));
+        await new Promise(r => setTimeout(r, 0));
 
         expect(wrapper.vm.isLoading).toBe(false);
         expect(wrapper.vm.selectOptions).toHaveLength(2);
@@ -347,7 +347,7 @@ describe('EditorSelect', () => {
 
         wrapper.vm.drop(createDragEvent(dropTarget, { getData: () => '1' }));
 
-        expect(selectedItems(wrapper.vm.selected).map((item) => item.key)).toEqual(['1', '2']);
+        expect(selectedItems(wrapper.vm.selected).map(item => item.key)).toEqual(['1', '2']);
     });
 
     it('filters raw string', () => {

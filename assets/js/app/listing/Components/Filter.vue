@@ -75,7 +75,7 @@ const size = computed(() => generalStore.rowSize);
 const sorting = computed(() => generalStore.sorting);
 const selectAll = computed(() => selectingStore.selectAll);
 
-watch(sorting, (newSorting) => {
+watch(sorting, newSorting => {
     if (newSorting) {
         selectingStore.selectAll = false;
     }

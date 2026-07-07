@@ -52,7 +52,7 @@ const locale = ref<LocaleOption | null>(null);
 onMounted(() => {
     const localesList = props.locales || [];
     if (props.current) {
-        const currentLocale = localesList.find((l) => l.code === props.current);
+        const currentLocale = localesList.find(l => l.code === props.current);
         if (currentLocale) {
             locale.value = currentLocale;
         } else {

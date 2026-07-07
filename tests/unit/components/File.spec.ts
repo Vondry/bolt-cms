@@ -164,7 +164,7 @@ describe('EditorFile Component', () => {
 
         const [moveUp, moveDown] = wrapper
             .findAll('button')
-            .filter((b) => b.text().includes('Move up') || b.text().includes('Move down'));
+            .filter(b => b.text().includes('Move up') || b.text().includes('Move down'));
 
         expect(moveUp).toBeDefined();
         expect(moveDown).toBeDefined();
@@ -191,7 +191,7 @@ describe('EditorFile Component', () => {
 
         const buttons = wrapper
             .findAll('button')
-            .filter((b) => b.text().includes('Move up') || b.text().includes('Move down'));
+            .filter(b => b.text().includes('Move up') || b.text().includes('Move down'));
         expect(buttons[0]?.attributes('disabled')).toBeDefined();
         expect(buttons[1]?.attributes('disabled')).toBeDefined();
     });
@@ -199,7 +199,7 @@ describe('EditorFile Component', () => {
     it('clears the inputs and emits remove when removing', async () => {
         wrapper = mount(FileField, { props: defaultProps });
 
-        const removeButton = wrapper.findAll('button').find((b) => b.text().includes('Remove'));
+        const removeButton = wrapper.findAll('button').find(b => b.text().includes('Remove'));
         expect(removeButton).toBeDefined();
         await removeButton?.trigger('click');
 
@@ -214,7 +214,7 @@ describe('EditorFile Component', () => {
         wrapper = mount(FileField, { props: defaultProps });
         const clickSpy = vi.spyOn(uploadInput().element as HTMLInputElement, 'click');
 
-        const uploadButton = wrapper.findAll('button').find((b) => b.text().includes('Upload'));
+        const uploadButton = wrapper.findAll('button').find(b => b.text().includes('Upload'));
         expect(uploadButton).toBeDefined();
         await uploadButton?.trigger('click');
 
@@ -242,7 +242,7 @@ describe('EditorFile Component', () => {
         let resolvePost: (value: { data: string }) => void = () => {};
         (Axios.post as import('vitest').Mock).mockImplementation(
             () =>
-                new Promise((resolve) => {
+                new Promise(resolve => {
                     resolvePost = resolve;
                 }),
         );

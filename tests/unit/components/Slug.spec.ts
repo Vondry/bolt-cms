@@ -283,7 +283,7 @@ describe('EditorSlug Component', () => {
         expect(wrapper!.vm!.locked).toBe(true);
 
         // Click Generate
-        const generateButton = wrapper.findAll('.dropdown-item').find((b) => b.text().includes('Generate'));
+        const generateButton = wrapper.findAll('.dropdown-item').find(b => b.text().includes('Generate'));
         await generateButton!.trigger('click');
         expect(wrapper!.vm!.val).toBe('test-title-subtitle');
     });

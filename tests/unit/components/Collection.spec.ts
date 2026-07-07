@@ -12,6 +12,12 @@ const labels = {
     select: 'Select',
 };
 
+const getCollectionHashOrder = (collection: JQuery<HTMLElement>) =>
+    collection
+        .children('.collection-item')
+        .map((_, el) => $(el).attr('data-collection-hash'))
+        .get();
+
 describe('EditorCollection', () => {
     type CollectionExpose = {
         elements: Array<{ label: string; icon: string; hash: string; buttons: string; content: string }>;
@@ -140,7 +146,7 @@ describe('EditorCollection', () => {
     });
 
     it('preserves the manually reordered submission order after a subsequent add', async () => {
-        const orderedFields = ['A', 'B', 'C'].map((label) => ({
+        const orderedFields = ['A', 'B', 'C'].map(label => ({
             label,
             icon: 'fa-font',
             hash: `hash${label}`,
@@ -162,11 +168,7 @@ describe('EditorCollection', () => {
         await wrapper.vm.$nextTick();
 
         const collection = $('#fields_blocks_reorder_add');
-        const domOrder = () =>
-            collection
-                .children('.collection-item')
-                .map((_, el) => $(el).attr('data-collection-hash'))
-                .get();
+        const domOrder = () => getCollectionHashOrder(collection);
 
         expect(domOrder()).toEqual(['hashA', 'hashB', 'hashC']);
 
@@ -184,7 +186,7 @@ describe('EditorCollection', () => {
     });
 
     it('preserves the manual reorder after removing a different item', async () => {
-        const orderedFields = ['A', 'B', 'C'].map((label) => ({
+        const orderedFields = ['A', 'B', 'C'].map(label => ({
             label,
             icon: 'fa-font',
             hash: `hash${label}`,
@@ -206,11 +208,7 @@ describe('EditorCollection', () => {
         await wrapper.vm.$nextTick();
 
         const collection = $('#fields_blocks_reorder_remove');
-        const domOrder = () =>
-            collection
-                .children('.collection-item')
-                .map((_, el) => $(el).attr('data-collection-hash'))
-                .get();
+        const domOrder = () => getCollectionHashOrder(collection);
 
         // Move C up -> [A, C, B]
         collection.children('.collection-item').last().find('.action-move-up-collection-item').trigger('click');

@@ -4,7 +4,7 @@ const image = document.getElementById('main_image');
 if (image) {
     Vibrant.from(image)
         .getPalette()
-        .then((swatches) => {
+        .then(swatches => {
             for (const swatch in swatches) {
                 if (Object.prototype.hasOwnProperty.call(swatches, swatch) && swatches[swatch]) {
                     const badge = document.createElement('span');
@@ -23,7 +23,7 @@ if (image) {
                 }
             }
         })
-        .catch((err) => {
+        .catch(err => {
             console.warn('Vibrant failed to extract colors:', err);
         });
 }

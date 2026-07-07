@@ -141,7 +141,7 @@ const sanitized = computed(() => {
     if (selected.value === null) {
         return JSON.stringify([]);
     } else if (Array.isArray(selected.value)) {
-        const filtered = selected.value.map((item) => item.key);
+        const filtered = selected.value.map(item => item.key);
         return JSON.stringify(filtered);
     } else {
         return JSON.stringify([selected.value.key]);
@@ -153,7 +153,7 @@ const fieldName = computed(() => {
 });
 
 const hasRecordLinks = computed(() => {
-    return selectOptions.value.some((option) => option && option.link_to_record_url);
+    return selectOptions.value.some(option => option && option.link_to_record_url);
 });
 
 function fixSelectedItems() {
@@ -165,7 +165,7 @@ function fixSelectedItems() {
     }
 
     let filterSelectedItems: SelectOption[] = _values
-        .map((val) => selectOptions.value.find((opt) => opt.key === val))
+        .map(val => selectOptions.value.find(opt => opt.key === val))
         .filter((item): item is SelectOption => item !== undefined);
 
     if (!!props.required && filterSelectedItems.length === 0) {
@@ -192,7 +192,7 @@ onMounted(() => {
         } else {
             const cachedRequest = requestCache[props.fetchurl];
             if (cachedRequest) {
-                cachedRequest.then((response) => {
+                cachedRequest.then(response => {
                     selectOptions.value = response;
                     fixSelectedItems();
                 });
@@ -206,7 +206,7 @@ onMounted(() => {
                 dataType: 'json',
                 cache: true,
             }) as SelectRequest;
-            requestCache[props.fetchurl]?.then((response) => {
+            requestCache[props.fetchurl]?.then(response => {
                 selectOptions.value = response;
                 selectCache[props.fetchurl as string] = response;
                 isLoading.value = false;
@@ -257,8 +257,8 @@ function drop(e: DragEvent) {
         return;
     }
 
-    const incomingElement = selected.value.find((el) => '' + el.key === '' + incomingId);
-    const outgoingElement = selected.value.find((el) => '' + el.key === '' + outgoingId);
+    const incomingElement = selected.value.find(el => '' + el.key === '' + incomingId);
+    const outgoingElement = selected.value.find(el => '' + el.key === '' + outgoingId);
 
     if (!incomingElement || !outgoingElement) {
         return;

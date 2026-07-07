@@ -23,11 +23,11 @@ const selected = ref(false);
 const selectAll = computed(() => selectingStore.selectAll);
 const sorting = computed(() => generalStore.sorting);
 
-watch(selectAll, (newSelectAll) => {
+watch(selectAll, newSelectAll => {
     selected.value = newSelectAll;
 });
 
-watch(selected, (newSelected) => {
+watch(selected, newSelected => {
     if (newSelected) {
         selectingStore.select(props.id);
     } else {
@@ -35,7 +35,7 @@ watch(selected, (newSelected) => {
     }
 });
 
-watch(sorting, (newSorting) => {
+watch(sorting, newSorting => {
     if (newSorting) {
         selected.value = false;
     }

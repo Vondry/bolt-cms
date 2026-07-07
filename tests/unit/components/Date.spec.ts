@@ -106,14 +106,14 @@ describe('EditorDate Component', () => {
             props: { ...defaultProps, locale: 'nl' },
         });
 
-        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map((el) => el.textContent.trim());
+        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map(el => el.textContent.trim());
         expect(weekdays).toContain('ma'); // Dutch for Monday
     });
 
     it('uses the default english locale otherwise', () => {
         wrapper = mount(DateField, { props: defaultProps });
 
-        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map((el) => el.textContent.trim());
+        const weekdays = [...document.querySelectorAll('.flatpickr-weekday')].map(el => el.textContent.trim());
         expect(weekdays).toContain('Mon');
     });
 

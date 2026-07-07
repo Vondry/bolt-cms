@@ -46,7 +46,7 @@ export function createServerFileBrowser(options: BrowserOptions) {
     let currentFilelist = options.initialFilelist;
 
     function filterServerFiles(files: ServerFile[]) {
-        return files.filter((file) => {
+        return files.filter(file => {
             if (file.group === 'directories') {
                 return true;
             }
@@ -70,7 +70,7 @@ export function createServerFileBrowser(options: BrowserOptions) {
         }
 
         return Axios.get<ServerFile[]>(filelist)
-            .then((res) => {
+            .then(res => {
                 const inputOptions = filterServerFiles(res.data);
                 if (mode === 'open') {
                     if (event) {
@@ -80,7 +80,7 @@ export function createServerFileBrowser(options: BrowserOptions) {
                     refreshModal(inputOptions);
                 }
             })
-            .catch((err) => {
+            .catch(err => {
                 const error = normalizeError(err as BrowserErrorInput);
                 if (mode === 'open') {
                     options.onOpenError(error);
@@ -194,15 +194,15 @@ export function createServerFileBrowser(options: BrowserOptions) {
     }
 
     function bindModalInteractions({ resourcesModal, resourcesModalObject, modalBody }: ModalParts) {
-        resourcesModal.querySelectorAll('.directory').forEach((link) => {
-            link.addEventListener('click', (e) => {
+        resourcesModal.querySelectorAll('.directory').forEach(link => {
+            link.addEventListener('click', e => {
                 e.preventDefault();
                 currentFilelist = (link as HTMLAnchorElement).href;
                 navigateDirectory();
             });
         });
 
-        modalBody.querySelectorAll('.form-check-input').forEach((card) => {
+        modalBody.querySelectorAll('.form-check-input').forEach(card => {
             card.addEventListener('click', () => {
                 resourcesModalObject.hide();
             });

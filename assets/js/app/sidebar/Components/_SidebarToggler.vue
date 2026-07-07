@@ -20,7 +20,7 @@ const slim = computed(() => generalStore.slimSidebar || false);
 
 watch(
     slim,
-    (newSlim) => {
+    newSlim => {
         const admin = document.querySelector('.admin');
         if (admin) {
             if (newSlim) {

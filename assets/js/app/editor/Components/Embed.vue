@@ -187,8 +187,8 @@ function fetchEmbed() {
     body.append('_csrf_token', (document.getElementsByName('_csrf_token')[0] as HTMLInputElement).value);
 
     fetch(props.embedapi as string, { method: 'POST', body: body })
-        .then((response) => response.json())
-        .then((json) => {
+        .then(response => response.json())
+        .then(json => {
             authorurlData.value = json.author_url;
             authornameData.value = json.author_name;
             heightData.value = json.height;
@@ -198,7 +198,7 @@ function fetchEmbed() {
             widthData.value = json.width;
             previewImage.value = json.thumbnail_url;
         })
-        .catch((err) => {
+        .catch(err => {
             console.warn(err);
         })
         .finally(() => {

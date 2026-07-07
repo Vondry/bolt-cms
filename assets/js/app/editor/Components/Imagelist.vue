@@ -101,7 +101,7 @@ initialImages.forEach((image, index) => {
 const activeImageFields = computed(() =>
     containerImages.value
         .map((image, index) => ({ ...image, containerIndex: index }))
-        .filter((image) => image.hidden !== true),
+        .filter(image => image.hidden !== true),
 );
 
 const allowMore = computed(() => {

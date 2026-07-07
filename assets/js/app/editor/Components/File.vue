@@ -196,7 +196,7 @@ const selectFile = useTemplateRef<HTMLInputElement>('selectFile');
 
 const fieldName = computed(() => props.name + '[]');
 const token = computed(() => props.csrfToken);
-const acceptedExtensions = computed(() => props.extensions.map((ext) => '.' + ext).join());
+const acceptedExtensions = computed(() => props.extensions.map(ext => '.' + ext).join());
 const getPlaceholder = computed(() => {
     if (typeof props.placeholder === 'string' && props.placeholder) {
         return props.placeholder;
@@ -211,13 +211,13 @@ const { selectServerFile } = createServerFileBrowser({
     labels: props.labels,
     modalTitlePrefix: 'Select a file',
     generateModalContent,
-    onSelect: (selectedFile) => {
+    onSelect: selectedFile => {
         filenameData.value = selectedFile;
     },
-    onOpenError: (err) => {
+    onOpenError: err => {
         console.warn(err);
     },
-    onNavigateError: (err) => {
+    onNavigateError: err => {
         console.warn(err);
     },
 });
@@ -400,7 +400,7 @@ function uploadFile(file: File) {
     fd.append('file', file);
     fd.append('_csrf_token', token.value ?? '');
     Axios.post<string>(props.directory, fd, config)
-        .then((res) => {
+        .then(res => {
             filenameData.value = res.data;
             progress.value = 0;
         })

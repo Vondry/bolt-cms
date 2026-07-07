@@ -180,7 +180,7 @@ function getCollectionItemFromPressedButton(button: HTMLElement) {
 function removeCollectionItem(button: HTMLElement) {
     const item = getCollectionItemFromPressedButton(button);
     const hash = item.attr('data-collection-hash');
-    const index = elements.value.findIndex((element) => element.hash === hash);
+    const index = elements.value.findIndex(element => element.hash === hash);
 
     if (index === -1) {
         return;
@@ -207,7 +207,7 @@ function getSelectedTemplate(event: Event) {
         ? $(event.target as HTMLElement)
         : $(event.target as HTMLElement).closest('[data-template]');
     const selectValue = target.attr('data-template');
-    return props.templates.find((template) => template.label === selectValue);
+    return props.templates.find(template => template.label === selectValue);
 }
 
 function updateTitle(item: HTMLElement) {
