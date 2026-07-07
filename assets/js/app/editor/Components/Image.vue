@@ -210,6 +210,10 @@ const props = defineProps<{
     readonly?: boolean;
     thumbnail?: string;
     alt?: string;
+    // Passed by imagelist.html.twig (via Imagelist) and simple_image.html.twig,
+    // where the image record carries a `title`. Not rendered by the image field
+    // itself; declared so it doesn't leak onto the root element as an attribute.
+    title?: string;
     includeAlt?: boolean;
     directory?: string;
     directoryurl?: string;

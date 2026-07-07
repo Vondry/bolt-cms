@@ -39,6 +39,12 @@ const props = defineProps<{
     value?: string | boolean;
     name?: string;
     id?: string;
+    // password.html.twig passes `:label` and `:label_class`; the label is rendered
+    // by the surrounding _base wrapper, so these are accepted but unused internally.
+    // Named to match the exact attributes Twig emits (underscore, not camelCase).
+    label?: string;
+    // eslint-disable-next-line vue/prop-name-casing -- must match the exact `:label_class` attribute Twig emits
+    label_class?: string;
     hidden?: boolean;
     strength?: boolean;
     required?: boolean;

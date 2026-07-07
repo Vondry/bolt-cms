@@ -24,6 +24,9 @@ import { useFieldValue } from '../composables/useFieldValue';
 const props = defineProps<{
     id?: string;
     value?: string;
+    // textarea.html.twig passes `:label`; the visible label is rendered by the
+    // surrounding _base wrapper, so it's accepted here but not used internally.
+    label?: string;
     name?: string;
     required?: boolean;
     readonly?: boolean;

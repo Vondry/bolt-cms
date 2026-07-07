@@ -154,6 +154,11 @@ import { getUploadErrorMessage, type UploadErrorResponse } from '../utils/upload
 const props = defineProps<{
     name?: string;
     filename?: string;
+    // file.html.twig passes `:thumbnail` and `:alt` (and Filelist forwards
+    // `:thumbnail`) from the shared media markup. The file field renders neither,
+    // but declaring them keeps the contract honest and avoids attribute fallthrough.
+    thumbnail?: string;
+    alt?: string;
     title?: string;
     directory?: string;
     media?: string;

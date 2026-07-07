@@ -94,6 +94,9 @@ import type { ListingRecord } from '../../../types';
 
 const props = defineProps<{
     type?: string;
+    // Row/index.vue forwards `:size` to every row column; _Actions doesn't vary by
+    // size, but declaring it avoids attribute fallthrough onto the root element.
+    size?: string;
     record: ListingRecord;
     labels: Record<string, string>;
 }>();
