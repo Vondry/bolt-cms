@@ -84,6 +84,10 @@ const counter = ref(0);
 const containerImages = ref<ImageField[]>([]);
 const labelsValue = computed(() => props.labels ?? {});
 const extensionsValue = computed(() => props.extensions ?? []);
+// `extraFields` comes from `field.definition.get('extra')` (imagelist.html.twig).
+// A configured `extra` is always an associative map, so json_encode yields an
+// object; when it's absent/empty, PHP serializes it as `[]` (an array). Treat any
+// array as "no extra fields" — a populated indexed array is never a valid shape.
 const extraFieldsValue = computed<Record<string, ExtraImageField>>(() =>
     Array.isArray(props.extraFields) ? {} : (props.extraFields ?? {}),
 );

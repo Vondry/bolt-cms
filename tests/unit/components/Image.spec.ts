@@ -203,6 +203,30 @@ describe('EditorImage Component', () => {
         expect(wrapper.find('.editor__image').exists()).toBe(true);
     });
 
+    it('binds a declared extra field when passed a whole image record', () => {
+        // In an imagelist the parent passes the entire ImageField record as
+        // extra-data (base keys like filename/media alongside the extra values).
+        // The declared extra field must still bind to its stored value.
+        wrapper = mount(ImageField, {
+            props: {
+                ...defaultProps,
+                extraFields: {
+                    caption: { label: 'Caption', placeholder: 'Caption…' },
+                },
+                extraData: {
+                    filename: 'foo.jpg',
+                    media: 5,
+                    thumbnail: '/thumbs/foo.jpg',
+                    extra: [],
+                    caption: 'Old caption',
+                },
+            },
+        });
+
+        const captionInput = wrapper.find('input[name="fields[image][caption]"]');
+        expect((captionInput.element as HTMLInputElement).value).toBe('Old caption');
+    });
+
     it('accepts extra data passed as an array', () => {
         wrapper = mount(ImageField, {
             props: {

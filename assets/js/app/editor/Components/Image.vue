@@ -240,8 +240,16 @@ const dragCount = ref(0);
 const progress = ref(0);
 const filenameData = ref(props.filename ?? '');
 const altData = ref(props.alt);
+// Extra-field values reach us in two shapes, both driven by the Bolt backend:
+// - standalone image field: image.html.twig builds a `{ extraKey: value }` object
+//   (see the `attribute(field, extraKey)` loop), keyed only by the extra fields;
+// - inside an imagelist: the parent passes the whole image record (ImageField::
+//   getValue()), which also carries base keys like filename/media/thumbnail/extra.
+// It can even arrive as an indexed array. Normalize to a lookup and keep only the
+// declared extra-field keys, so base keys never leak into the submitted values.
+const extraDataLookup: Record<string, unknown> = Object.fromEntries(Object.entries(props.extraData ?? {}));
 const extraDataValues = reactive<Record<string, string>>(
-    Object.fromEntries(Object.entries(props.extraData ?? {}).map(([key, value]) => [key, String(value ?? '')])),
+    Object.fromEntries(Object.keys(props.extraFields ?? {}).map((key) => [key, String(extraDataLookup[key] ?? '')])),
 );
 
 const selectFile = useTemplateRef<HTMLInputElement>('selectFile');
