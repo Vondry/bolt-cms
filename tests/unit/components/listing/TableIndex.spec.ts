@@ -1,11 +1,33 @@
 import type { Pinia } from 'pinia';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { ComponentPublicInstance } from 'vue';
+import { defineComponent, type ComponentPublicInstance, type PropType } from 'vue';
 import TableIndex from '@/listing/Components/Table/index.vue';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useListingStore } from '@/listing/store';
-import draggable from 'vuedraggable';
+import type { ListingRecord } from '@/listing/types';
+
+const DraggableSlotStub = defineComponent({
+    name: 'Draggable',
+    props: {
+        modelValue: {
+            type: Array as PropType<ListingRecord[]>,
+            default: () => [],
+        },
+    },
+    emits: ['update:modelValue'],
+    template: `
+        <div class="draggable-slot-stub">
+            <button class="reverse-records" @click="$emit('update:modelValue', [...modelValue].reverse())"></button>
+            <slot v-for="element in modelValue" name="item" :element="element"></slot>
+        </div>
+    `,
+});
+
+const draggableStubs = {
+    Draggable: DraggableSlotStub,
+    draggable: DraggableSlotStub,
+};
 
 describe('Listing Table Component', () => {
     type TableExpose = {
@@ -32,7 +54,7 @@ describe('Listing Table Component', () => {
             global: {
                 plugins: [pinia],
                 stubs: {
-                    draggable,
+                    ...draggableStubs,
                     'table-row': true,
                 },
             },
@@ -50,10 +72,17 @@ describe('Listing Table Component', () => {
         const wrapper = mountComponent();
         await wrapper.vm.$nextTick();
 
-        // Check if vuedraggable rendered items
-        expect(wrapper.findComponent(draggable).exists()).toBe(true);
-        // Note: when stubbed or even fully rendered, vuedraggable will render its slots
-        // Depending on vuedraggable implementation in tests, we can verify the get/set logic directly.
+        expect(wrapper.find('.draggable-slot-stub').exists()).toBe(true);
+        expect(wrapper.findAllComponents({ name: 'table-row' })).toHaveLength(2);
+    });
+
+    it('updates the listing store when draggable changes the record order', async () => {
+        listingStore.records = [{ id: 1 }, { id: 2 }];
+        const wrapper = mountComponent();
+
+        await wrapper.find('.reverse-records').trigger('click');
+
+        expect(listingStore.records).toEqual([{ id: 2 }, { id: 1 }]);
     });
 
     it('gets records from store', () => {

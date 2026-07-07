@@ -139,4 +139,70 @@ describe('Listing Row Component', () => {
         const link = wrapper.find('a.listing__row--item-title');
         expect(link.attributes('title')).toBe('');
     });
+
+    it('renders fallback values when optional record data is absent', () => {
+        generalStore.type = null;
+        generalStore.rowSize = 'normal';
+
+        const wrapper = mount(RowIndex, {
+            props: {
+                record: {
+                    id: 1,
+                    fieldValues: {
+                        slug: {},
+                    },
+                },
+                labels: {},
+            },
+            global: {
+                plugins: [pinia],
+                stubs: {
+                    'row-checkbox': true,
+                    'row-meta': true,
+                    'row-actions': true,
+                },
+            },
+        });
+
+        const link = wrapper.find('a.listing__row--item-title');
+        expect(link.text()).toBe('');
+        expect(link.attributes('href')).toBeUndefined();
+        expect(link.attributes('title')).toBe('');
+        expect(wrapper.find('.badge').exists()).toBe(false);
+        expect(wrapper.find('.listing__row--item.is-thumbnail').exists()).toBe(false);
+        expect(wrapper.findComponent({ name: 'row-meta' }).props('type')).toBeUndefined();
+        expect(wrapper.findComponent({ name: 'row-actions' }).props('labels')).toEqual({});
+    });
+
+    it('omits the thumbnail alt attribute when image alt text is not provided', () => {
+        generalStore.type = 'articles';
+        generalStore.rowSize = 'normal';
+
+        const wrapper = mount(RowIndex, {
+            props: {
+                ...defaultProps,
+                record: {
+                    ...defaultProps.record,
+                    extras: {
+                        ...defaultProps.record.extras,
+                        image: {
+                            thumbnail: 'thumb-without-alt.jpg',
+                        },
+                    },
+                },
+            },
+            global: {
+                plugins: [pinia],
+                stubs: {
+                    'row-checkbox': true,
+                    'row-meta': true,
+                    'row-actions': true,
+                },
+            },
+        });
+
+        const img = wrapper.find('.listing__row--item.is-thumbnail img');
+        expect(img.attributes('src')).toBe('thumb-without-alt.jpg');
+        expect(img.attributes('alt')).toBeUndefined();
+    });
 });

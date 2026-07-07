@@ -1,11 +1,36 @@
 import type { Pinia } from 'pinia';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import type { ComponentPublicInstance } from 'vue';
+import { defineComponent, type ComponentPublicInstance, type PropType } from 'vue';
 import SelectBox from '@/listing/Components/SelectBox.vue';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useSelectingStore } from '@/listing/store';
-import Multiselect from 'vue-multiselect';
+import type { BulkAction } from '@/listing/types';
+
+const SlotRenderingMultiselect = defineComponent({
+    name: 'VueMultiselect',
+    props: {
+        options: {
+            type: Array as PropType<BulkAction[]>,
+            default: () => [],
+        },
+    },
+    emits: ['update:modelValue'],
+    template: `
+        <div class="multiselect-slot-stub">
+            <button class="select-first-bulk-option" @click="$emit('update:modelValue', options[0])"></button>
+            <div v-for="option in options" :key="option.key" class="bulk-option">
+                <slot name="option" :option="option"></slot>
+            </div>
+        </div>
+    `,
+});
+
+const multiselectStubs = {
+    Multiselect: SlotRenderingMultiselect,
+    VueMultiselect: SlotRenderingMultiselect,
+    multiselect: SlotRenderingMultiselect,
+};
 
 describe('Listing SelectBox Component', () => {
     type SelectBoxExpose = {
@@ -40,9 +65,7 @@ describe('Listing SelectBox Component', () => {
             props: defaultProps,
             global: {
                 plugins: [pinia],
-                stubs: {
-                    Multiselect,
-                },
+                stubs: multiselectStubs,
             },
         }) as VueWrapper<ComponentPublicInstance & SelectBoxExpose>;
     };
@@ -106,6 +129,50 @@ describe('Listing SelectBox Component', () => {
 
         const button = wrapper.find('button[type="submit"]');
         expect(button.attributes('disabled')).toBeUndefined();
+    });
+
+    it('uses a relative bulk action URL when no backend prefix is configured', async () => {
+        selectingStore.select(1);
+        const wrapper = mount(SelectBox, {
+            props: {
+                ...defaultProps,
+                backendPrefix: undefined,
+            },
+            global: {
+                plugins: [pinia],
+                stubs: multiselectStubs,
+            },
+        }) as VueWrapper<ComponentPublicInstance & SelectBoxExpose>;
+        await wrapper.vm.$nextTick();
+
+        wrapper.vm.selectedAction = { key: 'delete' };
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find('form').attributes('action')).toBe('bulk/delete');
+    });
+
+    it('renders all bulk action options with their icon classes', async () => {
+        selectingStore.select(1);
+        const wrapper = mountComponent();
+        await wrapper.vm.$nextTick();
+
+        const options = wrapper.findAll('.bulk-option');
+        expect(options).toHaveLength(4);
+        expect(options[0].find('.status.is-published').exists()).toBe(true);
+        expect(options[3].find('.fa-trash').exists()).toBe(true);
+        expect(options[3].text()).toContain('Delete');
+    });
+
+    it('updates the selected bulk action from the multiselect v-model', async () => {
+        selectingStore.select(1);
+        const wrapper = mountComponent();
+        await wrapper.vm.$nextTick();
+
+        await wrapper.find('.select-first-bulk-option').trigger('click');
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find('form').attributes('action')).toBe('/bolt/bulk/status/published');
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeUndefined();
     });
 
     it('renders hidden inputs correctly', async () => {

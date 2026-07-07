@@ -30,4 +30,22 @@ describe('ThemeSelect Component', () => {
             '/assets/css/theme-light.css',
         );
     });
+
+    it('does not fail when the theme stylesheet is missing', async () => {
+        document.head.innerHTML = '';
+        const wrapper = mount(ThemeSelect);
+
+        await wrapper.findAll('.theme')[1].trigger('click');
+
+        expect(document.querySelector<HTMLLinkElement>('#theme')).toBeNull();
+    });
+
+    it('does not change a theme stylesheet without an href', async () => {
+        document.head.innerHTML = '<link id="theme" rel="stylesheet" />';
+        const wrapper = mount(ThemeSelect);
+
+        await wrapper.findAll('.theme')[1].trigger('click');
+
+        expect(document.querySelector<HTMLLinkElement>('#theme')?.hasAttribute('href')).toBe(false);
+    });
 });
