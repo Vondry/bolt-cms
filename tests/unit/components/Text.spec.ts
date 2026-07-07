@@ -52,6 +52,14 @@ describe('EditorText Component', () => {
         expect(input.attributes('placeholder')).toBe('Type here…');
     });
 
+    it('accepts numeric values and renders them as text input values', () => {
+        wrapper = mount(Text, {
+            props: { ...defaultProps, value: 50 },
+        });
+
+        expect((wrapper.find('input').element as HTMLInputElement).value).toBe('50');
+    });
+
     it('omits optional attributes when they are false', () => {
         wrapper = mount(Text, {
             props: {
