@@ -103,9 +103,10 @@ describe('EditorLanguage Component', () => {
             props: { label: 'Language', locales },
         });
 
-        // Use findComponent with class
+        // Use findComponent with class. vue-multiselect declares the camelCase
+        // `update:modelValue` event; emitting the kebab-case name warns.
         const multiselect = wrapper.findComponent(Multiselect);
-        multiselect.vm.$emit('update:model-value', locales[1]);
+        multiselect.vm.$emit('update:modelValue', locales[1]);
 
         expect(window.location.href).toBe('/nl#hash');
     });
