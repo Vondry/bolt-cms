@@ -26,6 +26,7 @@ describe('EditorDate Component', () => {
         wrapper = null;
         document.body.innerHTML = '';
         vi.unstubAllGlobals();
+        vi.restoreAllMocks();
     });
 
     it('renders a flatpickr bound to the value with name, form and errormessage', async () => {
@@ -123,6 +124,35 @@ describe('EditorDate Component', () => {
         await wrapper.vm.$nextTick();
 
         expect(wrapper.find('.editor--date.input').attributes('required')).toBeDefined();
+    });
+
+    it('does not surface the native validation popup on mount for an empty required field', async () => {
+        const reportValiditySpy = vi.spyOn(HTMLInputElement.prototype, 'reportValidity').mockReturnValue(true);
+
+        wrapper = mount(DateField, {
+            props: { ...defaultProps, required: true, value: '' },
+        });
+        await wrapper.vm.$nextTick();
+
+        // The required attribute is still applied so the browser blocks submission…
+        expect(wrapper.find('.editor--date.input').attributes('required')).toBeDefined();
+        // …but the intrusive validation bubble must not be triggered on initial load.
+        expect(reportValiditySpy).not.toHaveBeenCalled();
+    });
+
+    it('surfaces the validation state after an update, not on mount', async () => {
+        const reportValiditySpy = vi.spyOn(HTMLInputElement.prototype, 'reportValidity').mockReturnValue(true);
+
+        wrapper = mount(DateField, {
+            props: { ...defaultProps, required: true, value: '' },
+        });
+        await wrapper.vm.$nextTick();
+        expect(reportValiditySpy).not.toHaveBeenCalled();
+
+        // A subsequent update (e.g. re-render after user interaction) may report validity.
+        await wrapper.setProps({ readonly: true });
+
+        expect(reportValiditySpy).toHaveBeenCalled();
     });
 
     it('removes required from the visible input on update when a date is set', async () => {

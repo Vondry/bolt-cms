@@ -103,7 +103,7 @@ const parsedLabels = computed(() => {
     }
 });
 
-function fixRequired() {
+function fixRequired(reportValidity = false) {
     if (!props.required || !rootEl.value) {
         return;
     }
@@ -117,6 +117,14 @@ function fixRequired() {
         input.removeAttribute('required');
     }
 
+    // Only surface the native validation popup after a user interaction or a
+    // subsequent update — never on the initial mount. Calling reportValidity()
+    // on mount would flash "please fill in this field" on page load for every
+    // empty required date field, before the user has touched the form.
+    if (!reportValidity) {
+        return;
+    }
+
     if (input.reportValidity) {
         input.reportValidity();
     }
@@ -125,10 +133,10 @@ function fixRequired() {
     }
 }
 
-onMounted(fixRequired);
-onUpdated(fixRequired);
+onMounted(() => fixRequired(false));
+onUpdated(() => fixRequired(true));
 
 watch(val, () => {
-    fixRequired();
+    fixRequired(true);
 });
 </script>
