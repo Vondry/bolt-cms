@@ -98,17 +98,16 @@ export function createServerFileBrowser(options: BrowserOptions) {
 
         // Axios errors are `Error` instances that also carry a `.response`; keep it.
         const response = (error as { response?: BrowserErrorResponse }).response;
-
-        if (error instanceof Error) {
-            return new BrowserError(error.message, response);
-        }
-
         const responseData = response?.data;
-        const message =
-            typeof responseData === 'string'
-                ? responseData
-                : (responseData?.error?.message ?? error.message ?? String(error));
-        return new BrowserError(message, response);
+
+        // Prefer the server-provided message (a string body or a
+        // `{ error: { message } }` payload) over Axios's generic "Request failed
+        // with status code N". This must run BEFORE any `error.message` fallback,
+        // because AxiosErrors are `Error` instances and would otherwise short-circuit
+        // to the generic message, making the server message unreachable.
+        const messageFromResponse = typeof responseData === 'string' ? responseData : responseData?.error?.message;
+
+        return new BrowserError(messageFromResponse ?? error.message ?? String(error), response);
     }
 
     function requireElement<T extends Element>(selector: string, root: Document | Element = document): T {

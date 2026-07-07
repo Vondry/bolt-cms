@@ -541,6 +541,22 @@ describe('EditorImage Component', () => {
         expect(renable).toHaveBeenCalled();
     });
 
+    it('surfaces the server message when the failure is a real AxiosError', async () => {
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+        // A genuine AxiosError is an `Error` instance that also carries `.response`.
+        // The generic `error.message` must not shadow the server-provided message.
+        const axiosError = Object.assign(new Error('Request failed with status code 400'), {
+            response: { data: { error: { message: 'Server says no' } } },
+        });
+        (Axios.get as import('vitest').Mock).mockRejectedValue(axiosError);
+
+        wrapper = mount(ImageField, { props: defaultProps });
+        await wrapper.find('button.dropdown-item').trigger('click');
+        await flushPromises();
+
+        expect(alertSpy).toHaveBeenCalledWith('Server says no<br>Image did not upload.');
+    });
+
     it('alerts when navigating a directory fails', async () => {
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
         (Axios.get as import('vitest').Mock).mockResolvedValueOnce({ data: serverFiles });
