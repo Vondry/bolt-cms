@@ -157,6 +157,26 @@ describe('EditorSelect', () => {
         expect(wrapper.vm.sanitized).toBe('["2"]');
     });
 
+    it('selects an option whose key is the number 0', () => {
+        // `0` is falsy, so a truthiness check on props.value would wrongly clear it.
+        wrapper = mount(Select, {
+            props: {
+                ...defaultProps,
+                options: [
+                    { key: 0, value: 'Zero' },
+                    { key: 1, value: 'One' },
+                ],
+                value: 0,
+                multiple: false,
+                taggable: false,
+            },
+            global: { components: { multiselect: Multiselect } },
+        }) as SelectWrapper;
+
+        expect(selectedItems(wrapper.vm.selected)).toHaveLength(1);
+        expect(selectedItems(wrapper.vm.selected)[0]?.key).toBe(0);
+    });
+
     it('adds a tag', () => {
         wrapper = mount(Select, {
             props: defaultProps,

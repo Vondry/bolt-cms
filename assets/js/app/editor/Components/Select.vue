@@ -144,7 +144,9 @@ const hasRecordLinks = computed(() => {
 
 function fixSelectedItems() {
     let _values: Array<string | number> = [];
-    if (props.value) {
+    // Explicit nullish check, not truthiness: a numeric key of `0` is a valid
+    // value that `if (props.value)` would wrongly treat as "no selection".
+    if (props.value !== undefined && props.value !== null) {
         _values = Array.isArray(props.value) ? props.value : [props.value];
     }
 
@@ -208,7 +210,9 @@ function addTag(newTag: string) {
     if (Array.isArray(selected.value)) {
         selected.value.push(tag);
     } else {
-        selected.value = [tag];
+        // Single-select (taggable, non-multiple): the new tag becomes the single
+        // selection, so bind the object directly rather than wrapping it in an array.
+        selected.value = tag;
     }
 }
 
