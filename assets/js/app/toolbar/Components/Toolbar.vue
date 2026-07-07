@@ -1,7 +1,7 @@
 <template>
     <div class="admin__toolbar--body" :class="contrast ? 'is-light' : 'is-dark'" role="toolbar">
         <div class="toolbar-item btn-group toolbar-item__brand">
-            <img src="../../../../images/bolt_logo_dashboard.svg" alt="⚙️ Bolt" height="26" />
+            <img src="/assets/images/bolt_logo_dashboard.svg" alt="⚙️ Bolt" height="26" />
         </div>
 
         <div v-if="isImpersonator" class="toolbar-impersonation">
