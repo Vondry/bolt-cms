@@ -28,7 +28,12 @@
                 <span v-html="slotProps.option.value"></span>
                 <!--eslint-enable-->
                 <div v-if="slotProps.option.link_to_record_url" class="multiselect__tag__edit">
-                    <a :href="slotProps.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
+                    <a
+                        :href="slotProps.option.link_to_record_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Edit record"
+                    >
                         <i class="far fa-edit me-0"></i>
                     </a>
                 </div>
@@ -40,11 +45,13 @@
             </template>
 
             <template v-if="name !== 'status'" #tag="slotProps">
+                <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
                 <span
                     :class="{ empty: slotProps.option.value == '' }"
                     @drop="drop($event)"
                     @dragover="allowDrop($event)"
                 >
+                    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
                     <span
                         :id="slotProps.option.key"
                         :key="slotProps.option.value"
@@ -62,13 +69,20 @@
                         <span v-html="slotProps.option.value"></span>
 
                         <div v-if="slotProps.option.link_to_record_url" class="multiselect__tag__edit">
-                            <a :href="slotProps.option.link_to_record_url" target="_blank" rel="noopener noreferrer">
+                            <a
+                                :href="slotProps.option.link_to_record_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Edit record"
+                            >
                                 <i class="far fa-edit me-0"></i>
                             </a>
                         </div>
 
                         <i
-                            tabindex="1"
+                            role="button"
+                            aria-label="Remove element"
+                            tabindex="0"
                             class="multiselect__tag-icon"
                             @keypress.enter.prevent="removeElement(slotProps.option)"
                             @mousedown.prevent="removeElement(slotProps.option)"

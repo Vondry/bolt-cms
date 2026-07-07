@@ -2,6 +2,7 @@
     <section class="user__theme">
         <h3>Themes:</h3>
         <ul class="user__theme--themes">
+            <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
             <li v-for="(theme, index) in themes" :key="index" class="theme" @click="selectTheme(theme.value)">
                 <h5 class="theme--name">{{ theme.name }}</h5>
                 <div class="theme--palette">

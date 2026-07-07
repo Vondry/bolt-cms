@@ -8,6 +8,7 @@
                 v-model="val"
                 class="form-control"
                 :name="name"
+                :aria-label="name"
                 placeholder="…"
                 type="text"
                 :class="fieldClass"

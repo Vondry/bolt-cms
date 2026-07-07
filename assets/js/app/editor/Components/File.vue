@@ -1,4 +1,5 @@
 <template>
+    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <div class="editor__file" @dragenter="onDragEnter" @dragleave="onDragLeave" @dragover.prevent @drop="onDrop">
         <transition name="fade">
             <div v-show="isDragging" class="editor__file--dragging">
@@ -10,6 +11,7 @@
                 <div class="input-group mb-3">
                     <input :name="name + '[media]'" type="hidden" :value="media" />
                     <input
+                        :aria-label="labels.placeholder_filename"
                         :title="name + ' filename'"
                         class="form-control"
                         :name="name + '[filename]'"
@@ -24,6 +26,7 @@
                 <div class="input-group mb-3">
                     <input
                         v-model="titleData"
+                        :aria-label="labels.placeholder_title"
                         :title="name + ' title'"
                         class="form-control"
                         :name="name + '[title]'"
@@ -133,6 +136,7 @@
         </div>
         <input
             ref="selectFile"
+            :aria-label="labels.placeholder_filename"
             :title="name + ' filename'"
             class="editor__file--upload"
             :name="fieldName"

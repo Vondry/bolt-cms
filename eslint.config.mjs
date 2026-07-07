@@ -3,6 +3,7 @@ import cypress from 'eslint-plugin-cypress';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import sonarjs from 'eslint-plugin-sonarjs';
 import vue from 'eslint-plugin-vue';
+import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -13,6 +14,7 @@ export default [
     js.configs.recommended,
     ...tseslint.configs.recommended,
     ...vue.configs['flat/recommended'],
+    ...vuejsAccessibility.configs['flat/recommended'],
     sonarjs.configs.recommended,
     {
         files: ['assets/**/*.{js,ts,vue}', 'tests/unit/**/*.ts', 'tests/cypress/**/*.js', '*.mjs'],
@@ -41,6 +43,14 @@ export default [
             '@typescript-eslint/no-require-imports': 'off',
             '@typescript-eslint/no-explicit-any': 'error',
             'prettier/prettier': ['error', { printWidth: 120 }],
+            'vuejs-accessibility/label-has-for': [
+                'error',
+                {
+                    required: {
+                        some: ['nesting', 'id'],
+                    },
+                },
+            ],
         },
         settings: {
             'import/resolver': {

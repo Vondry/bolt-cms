@@ -1,4 +1,5 @@
 <template>
+    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <div class="editor__image" @dragenter="onDragEnter" @dragleave="onDragLeave" @dragover.prevent @drop="onDrop">
         <transition name="fade">
             <div v-show="isDragging" class="editor__image--dragging">
@@ -22,6 +23,7 @@
                 <div class="input-group mb-3">
                     <input :name="name + '[media]'" type="hidden" :value="media" />
                     <input
+                        :aria-label="labels.placeholder_filename"
                         :title="name + ' filename'"
                         class="form-control"
                         :name="name + '[filename]'"
@@ -35,10 +37,11 @@
                 </div>
                 <div v-if="includeAlt" class="input-group mb-3">
                     <div class="col-sm-2">
-                        <label>Alt:</label>
+                        <label :for="name + '-alt'">Alt:</label>
                     </div>
                     <div class="col-sm-10">
                         <input
+                            :id="name + '-alt'"
                             v-model="altData"
                             :title="name + ' alt'"
                             class="form-control"
@@ -52,10 +55,11 @@
                 </div>
                 <div v-for="(extraFieldProps, extraField) in extraFields" :key="extraField" class="input-group mb-3">
                     <div class="col-sm-2">
-                        <label>{{ extraFieldProps.label }}:</label>
+                        <label :for="name + '-' + extraField">{{ extraFieldProps.label }}:</label>
                     </div>
                     <div class="col-sm-10">
                         <input
+                            :id="name + '-' + extraField"
                             v-model="extraDataValues[extraField]"
                             :title="name + ' ' + extraField"
                             class="form-control"

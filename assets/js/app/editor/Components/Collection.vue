@@ -1,7 +1,7 @@
 <template>
     <div :id="name" ref="collectionContainer" class="collection-container">
         <div class="expand-buttons">
-            <label>{{ labels.field_label }}:</label>
+            <span>{{ labels.field_label }}:</span>
 
             <div class="btn-group" role="group">
                 <button class="btn btn-secondary btn-sm collection-expand-all">
@@ -58,16 +58,17 @@
                         <i class="fas fa-fw fa-plus"></i> {{ labels.select }}
                     </button>
                     <div class="dropdown-menu" :aria-labelledby="name + '-dropdownMenuButton'">
-                        <a
+                        <button
                             v-for="template in templates"
                             :key="template.label"
                             class="dropdown-item"
+                            type="button"
                             :data-template="template.label"
                             @click="addCollectionItem($event)"
                         >
                             <i :class="[template.icon, 'fas fa-fw']" />
                             {{ template.label }}
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <button

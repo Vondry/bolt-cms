@@ -18,6 +18,7 @@
             />
 
             <div class="input-group-text p-0">
+                <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
                 <i ref="visibilityToggle" class="toggle-password fas fa-eye" @click="togglePassword"></i>
             </div>
         </div>

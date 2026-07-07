@@ -8,6 +8,7 @@
                         <label class="form-label" for="embed-url">{{ labels.content_url }}</label>
                         <div class="input-group">
                             <input
+                                id="embed-url"
                                 v-model="urlData"
                                 class="form-control"
                                 :name="name + '[url]'"
@@ -44,6 +45,7 @@
                     <div class="mb-4 d-flex align-items-center">
                         <label class="form-label" for="embed-width-size">{{ labels.label_size }}</label>
                         <input
+                            id="embed-width-size"
                             class="form-control w-auto col-2 offset-1"
                             :name="name + '[width]'"
                             type="number"
@@ -54,6 +56,7 @@
                         ×
                         <label for="embed-height-size" class="sr-only">{{ labels.label_height }}</label>
                         <input
+                            id="embed-height-size"
                             class="form-control w-auto col-2"
                             :name="name + '[height]'"
                             type="number"
@@ -61,14 +64,15 @@
                             :readonly="readonly"
                             :title="labels.field_height"
                         />
-                        <label>{{ labels.label_pixel }}</label>
+                        <span class="form-label">{{ labels.label_pixel }}</span>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label">{{ labels.label_matched_embed }}</label>
+                        <span class="form-label d-block">{{ labels.label_matched_embed }}</span>
                         <input
                             class="form-control title"
                             :name="name + '[title]'"
                             readonly
+                            :aria-label="labels.field_title"
                             :title="labels.field_title"
                             type="text"
                             :value="titleData"
@@ -77,6 +81,7 @@
                             class="form-control author_name"
                             :name="name + '[authorname]'"
                             readonly
+                            :aria-label="labels.field_author"
                             :title="labels.field_author"
                             type="text"
                             :value="authornameData"
@@ -92,7 +97,7 @@
                     </div>
                 </div>
                 <div class="col-4">
-                    <label class="form-label">{{ labels.label_preview }}</label>
+                    <span class="form-label d-block">{{ labels.label_preview }}</span>
                     <div class="editor__image--preview">
                         <a
                             v-if="previewImage !== null && previewImage !== ''"
@@ -100,6 +105,7 @@
                             :href="previewImage"
                             :style="`background-image: url('${previewImage}')`"
                         >
+                            <span class="sr-only">{{ labels.label_preview }}</span>
                         </a>
                     </div>
                 </div>

@@ -11,7 +11,7 @@
                         type="checkbox"
                         @click="enableSelectAll(!selectAll)"
                     />
-                    <label class="form-check-label form-label" for="selectAll" @click="enableSelectAll(!selectAll)">
+                    <label class="form-check-label form-label" for="selectAll">
                         <span class="sr-only">{{ labels.select_all }}</span>
                     </label>
                 </div>

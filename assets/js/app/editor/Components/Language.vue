@@ -1,6 +1,6 @@
 <template>
     <div id="multiselect-localeswitcher" class="form-group">
-        <label>{{ label }}</label>
+        <span class="form-label d-block">{{ label }}</span>
         <multiselect
             v-model="locale"
             track-by="name"

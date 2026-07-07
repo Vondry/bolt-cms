@@ -2,7 +2,7 @@
     <div v-show="!sorting" key="checkbox" class="listing--checkbox">
         <div class="form-check">
             <input :id="`row-${id}`" v-model="selected" class="form-check-input" type="checkbox" />
-            <label class="form-check-label" :for="`row-${id}`" @click="selected != !selected"></label>
+            <label class="form-check-label" :for="`row-${id}`"></label>
         </div>
     </div>
 </template>
