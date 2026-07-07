@@ -25,7 +25,9 @@ import { eventBus } from '../../eventBus';
 import { useFieldValue } from '../composables/useFieldValue';
 
 const props = defineProps<{
-    value?: string;
+    // Usually a string, but numeric on the media edit page (cropX/cropY/cropZoom),
+    // where media/edit.html.twig passes raw numbers into text.html.twig.
+    value?: string | number;
     name?: string;
     type?: string;
     disabled?: boolean;
