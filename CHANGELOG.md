@@ -1,6 +1,16 @@
 Changelog
 =========
 
+## 6.1.5
+
+Released: 2026-07-12
+
+This release includes a security-related fix. Our thanks to @Vondry for identifying the issues and disclosing it to us responsibly! 👏🙏
+
+### 🔐 Security related changes
+
+- Prevent SSRF due to unchecked followed redirects (@Vondry)
+
 ## 6.1.4
 
 Released: 2026-07-04
