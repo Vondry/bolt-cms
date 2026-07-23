@@ -12,12 +12,14 @@ jobs:
     name: Cypress Tests
     runs-on: ubuntu-latest
     env:
-      PHP_VERSION: 8.2
+      # composer.lock is gitignored, so CI resolves dependencies fresh on every run.
+      # The resulting api-platform / serializer stack needs PHP 8.4: on 8.2 the content
+      # and API (serializer-backed) routes fatal and return 502 during the e2e run.
+      PHP_VERSION: 8.4
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
-          # test the lowest version, to make sure checks pass on it
           php-version: ${{ env.PHP_VERSION }}
           extensions: json, mbstring, pdo, curl, pdo_sqlite
           coverage: none
