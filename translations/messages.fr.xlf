@@ -448,7 +448,7 @@
         <target>Adresse Email</target>
       </segment>
     </unit>
-    <unit id="D2N6_cP" name="label.about">
+    <unit id="D2N7_cP" name="label.about">
       <notes>
         <note>src/Form/UserType.php:38</note>
         <note>new</note>
@@ -2759,6 +2759,12 @@
       <segment>
         <source>modal.button_deny</source>
         <target>Fermer</target>
+      </segment>
+    </unit>
+    <unit id="OPxagAY" name="general.phrase.none">
+      <segment>
+        <source>general.phrase.none</source>
+        <target>Aucun</target>
       </segment>
     </unit>
   </file>
